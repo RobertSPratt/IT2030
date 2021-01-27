@@ -1,0 +1,165 @@
+#+TITLE: Chapter 02 - How to develop a single-page MVC web app
+
+* How to create a Cor MVC web app
+** How to start a new web app
+1. start VS
+2. select `File` -> `New` -> Project
+3. select the ASP.NET Core Web Application item and click the `Next` button
+4. enter a project name
+5. specify the directory
+   a. if the `Place solution and project in the same directory` box is unchecked, VS creates a directory for the solution and a subfolder for the project; otherwise, these files are stored in the same folder
+6. edit the solution name, if necessary, and click the `Create` button
+7. use the resulting dialog to select the Web Application (Model-View-Controller) template or the Empty template
+** How to select a template
+- VS provides several /templates/ to use when creating ASP.NET Core web apps
+  + the template chosen determines the folders and files that VS ads to the project when creating the app
+  + the MVC template sets up the starting folders and files for an ASP.NET Core MVC web app
+    - when using this template, it is common to start by deleting files and code that isn't needed
+  + the Empty template provides two starting files for an ASP.NET Core app
+    - when using this template, all files and folders for an MVC web app must be added manually and the middleware for the request pipeline must be configured
+** How to set up the MVC folders
+- how to delete unnecessary files from the MVC template
+  1. expand the Controllers folder and delete all files in that folder
+  2. expand the Models folder and delete all files in that folder
+  3. expand the Views folder and its subfolders and delete all files in these folders, but don't delete the folders
+- how to add folders to the Empty template
+  1. add the Controllers, Models, and Views folders
+  2. withing the Views folder, add the Home and Share folders
+- to add a folder, right-click a node and select `Add` -> `New Folder`
+- to delete a folder or file, right-click the folder or filed and select `Delete`
+** How to add a controller
+- a /controller/ is a C# class that inherits from the Controller class that's available from the Microsoft.AspNetCore.Mvc namespace
+- it's common to place controller classes in a namespace that consists of the project name, a dot, and the name of the folder that stores the controllers
+- if a method of a controller runs in response to HTTP action verbs such as `GET` or `POST`, the method is known as an /action method/, or /action/
+- the ViewBag property is automatically available to controllers and views; it uses dynamic properties to get and set values
+- the View() method returns a ViewResult object for the view associated with an action method
+- because specifying the IActionResult interface as the return type for an action method allows any type of action result to be returned, it provides a flexible way to code an action method
+  + if it is known that a ViewResult is definitely going to be returned, the return type can be changed to reflect this--some programmers think this makes code easier to read
+** How to add a Razor view
+- how to add a view to the Views/Home folder
+  1. in the Solution Explorer, right-click on the Views/home folder and select `Add`->`View`
+  2. in the resulting dialog, enter the name of the view
+  3. select the template
+  4. deselect the "Use a layout page" checkbox
+  5. click the `Add` button
+- a /Razor view/ contains both C# and HTML code
+  + this is why its file extension is `.cshtml`
+- in ASP.NET Core MVC, the /Razor view engine/ uses server-side code to embed C# code within the HTML
+  + Razor code is preceded by the `@` sign
+    - to execute one or more C# statements, a /Razor code block/ can be declared by coding the `@` sign followed by a pair of braces `{}`
+- to evaluate a C# statement, you can declare a /Razor code block/ by coding the `@` sign and then coding the expression
+** How to configure an MVC web app
+- Razor pages are typically used by apps that don't use the MVC pattern
+- the Startup.cs file contains the code that configures the middleware for the HTTP request pipeline
+- the Configure() method begins by checking whether the web hosting environment is a develeopment environment
+  + if it is, it configures the middleware for it, otherwise, it configures the middleware for a production environment
+* How to run a web app and fix errors
+** How to run a web app
+- to run an app in the default browser without debugging, pres `Ctrl` + `F5`
+  + pressing `F5` will run the app with debugging
+- to stop an app that isn't using the debugger, close the browser window
+  + if using the debugger, click the Stop Debugging button in the Debug toolbar
+- when running an app, it must be decided whether to run it on the older Windows-only IIS Express server or the newer, cross-platform Kestrel server
+  + the Nestrel server runs faster than the IIS Express server
+- to use the Kestrel server, click the dorp-down list to the right of the Start button in the toolbar and select the item for the project's name
+  + don't select the IIS Express item that's usually selected by default
+  + when using the Kestrel server, VS starts Kestrel and uses a console window to display information about the status of each HTTP request
+  + to stop the server, close this window
+- to change the default browser in VS, use the provided drop-down browser list
+- befor VS runs an app, it builds the project by compiling the necessary code
+  + if the code compiles without errors, VS runs the app and displays the starting page in the browser
+** How to find and fix errors
+- if errors are detected as part of the compilation, VS opens the Error List window and displayes the errors
+- these errors can consist of /syntax errors/ that have to be corrected befor the app can be compiled, as well as warning messages
+- to fix an error, double-click it in the Error List window
+  + this moves the cursor to into the code edito to the line of code that caused the error
+- after fixing all of the compilation errors, it is still possible to encounter an /exception/
+  + this happens when ASP.NET Core can't execute one of the compiled C# statements correctly at runtime
+  + if not in debug mode, ASP.NET Core MVC displays a description of the exception in the web browser
+  + if in debug mode, ASP.NET Core MVC switches to the code editor and hightlights the statement that caused the exception
+* How to work with a model
+** How to add a model
+- a /model/ is a regular C# class that stores a model of the data for a page and is typically stored in the Models folder
+  + as a result, to add a model, a C# class needs to be added to the Models folder
+- to keep the name of the model short, some programmers would prefer to drop the "Model" suffix
+  + a model can't have the same name as a namespace
+** How to add a Razor view imports page
+- a /Razor view imports page/ makes it easier to work with models and tag helpers
+  + as a result, most web apps include this page
+- how to add a Razor view imports page
+  1. in the Solution Explorer, right-click the Views folder and select `Add`->`New Item`
+  2. in the resulting dialog, select the `Installed`->`ASP.NET Core`->`Web` category, select the `Razor View Imports` item and click the `Add` button
+** How to code a strongly-typed view
+- the `@model` directive is used to /bind/ the model to the view
+  + this kind of view is called a /strongly-typed view/
+- common tag helpers for forms
+| Tag helper       | HTML tags           | Description                                                                                      |
+|------------------+---------------------+--------------------------------------------------------------------------------------------------|
+| `asp-for`        | `<label>` `<input>` | binds the HTML element to the specified model property                                           |
+| `asp-action`     | `<form>` `<a>`      | specifies the action for the URL; if no controller is specified, MVC uses the current controller |
+| `asp-controller` | `<form>` `<a>`      | specifies the controller for the URL                                                              |
+
+- ASP.NET Core MVC /tag helpers/ are used to automatically generate /attributes/ for some HTML elements
+  + they are also used to /bind/ HTML elements to the properties of the object that's the /model/ for the view
+** How to handle GET and POST requests
+- two attributes that indicate the HTTP verb and action method handles
+| Attribute | Description                                            |
+|-----------+--------------------------------------------------------|
+| HttpGet   | specifies that the action method handles a GET request |
+| HttpPost  | specifies that the actio nmetod handles a POST request |
+
+- it's common for a GET request to display a blank input form to the user
+  + this happens by default when an ASP.NET Core MVC app starts
+- in MVC, overloaded action methods can be used to handle both GET and POST requests for a page
+- if a unique signature for each version of the action method is not provided, a compiler error will be thrown
+** How to work with a strongly-typed view
+- two methods to return a view from a controller
+| Method        | Description                                                                                                                   |
+|---------------+-------------------------------------------------------------------------------------------------------------------------------|
+| View()        | returns the view that corresponds to the current controller and action                                                        |
+| View([model]) | passes the specified model to the view that corresponds to the current controller and action so te view can bind to the model |
+
+- when an action method handles a POST request from a strongly-typed view, MVC uses the dat stored in the POST request to set the properties of the model object
+* How to organize the files for a view
+- when a web app consists of multiple pages, it makes sense to split the view into multiple files
+  + the HTML and CSS styles that are common to multiple styles are stored in their own files
+** How to add a CS style sheet
+- if the wwwroot/css folder doesn't exist, create it
+- right-click the wwwroot/css folder and select `Add`->`New Item`
+- select the `ASP.NET Core`->`Web` category, then the `Style Sheet` item and enter a name for the CSS file and click the Add button
+** How to add a Razor layout, view start, and view
+- how do add a Razor layout
+  1. right-click the Views/Shared folder and select `Add New Item`
+  2. select the `ASP.NET Core`->`Web` category, then select the `Razor Layout` item and click the Add button
+- how to add a razor view start
+  1. right click the Views folder (not the Views/Shared folder) and select `Add`->`New Item`
+  2. select the `ASP.NET Core`->`Web` category, then select the `Razor View Start` item and click the add button
+- how to add a Razor view
+  1. right-click the folder for the view and select `Add`->`View`
+  2. specify the name for the view
+  3. if the layout has a view start, select the "Use a layout page" item but don't specify a name for the layout page
+- a /Razor layout/ provides a way to store elements that are common to multiple web pages in a single file
+- a /Razor view start/ makes it possible to specify the default Razor layou for the Razor views of a web app
+- a /Razor view/ provides a way to store elements that are unique to a web page
+** The code for a Razor layout, view start, and view
+- a Razor file named `_ViewStart` can be used to set the default layout for all the views in an app
+  + if necessary, the Layout property of a view can override the default layout
+* How to validate user input
+- ASP.NET Core MVC makes it easy to validate data and display error messages
+  + this is known as /data validation/ and is an important part of developing most apps
+** How to set data validation rules in the model
+- how to import the DataAnnotations namespace: `using System.ComponentModel.DataAnnotations;`
+- two common validation attributes
+| Attribute       | Description                                         |
+|-----------------+-----------------------------------------------------|
+| Required        | indicates that a value is required for the property |
+| Range(min, max) | indicates that the value for the property must be within a specified range of values   |
+
+- /validation attributes/ of the DataAnnotations namespace can be used to add /validation rules/ to a model
+- for the `Required` attribute to work properly, the data for the property must be nullable
+- if an error message is not specified, the data validation attributes generate a default error message
+- to specify a custom error message, pass an argument named ErrorMessage as the last argument of the attribute
+** How to check the data validation
+- a controller can use the ModelState property that's available from the controller class to check whether the data in the model is valid
+** How to display validation error messages
+- a view can use the tag helper named `asp-validation-summary` to display a summary of all data validation errors in the model
