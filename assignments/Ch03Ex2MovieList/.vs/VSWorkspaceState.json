@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\MovieList",
+    "\\MovieList\\Models",
+    "\\MovieList\\Views",
+    "\\MovieList\\Views\\Home",
+    "\\MovieList\\Views\\Shared",
+    "\\MovieList\\wwwroot",
+    "\\MovieList\\wwwroot\\lib"
+  ],
+  "SelectedNode": "\\MovieList\\Views\\Shared\\_Layout.cshtml",
+  "PreviewInSolutionExplorer": false
+}

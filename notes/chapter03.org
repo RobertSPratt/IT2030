@@ -1,0 +1,267 @@
+#+TITLE: Chapter 03 - How to make a web app responsive with Bootstrap
+
+* An introduction to responsive web design
+- /responsive web design/ is making sure that web apps look good on devices of every size
+  + apps that are mobile friendly perform better in Google's search results
+- one way to make web apps responsive is to use CSS3 /media queries/
+  + these let allow the layout of the page to be adjusted based on conditions, such as the width of the screen
+- because it can be time consuming to develop media queries, frameworks have been developed to automate this process
+- a /framework/ contains general code for common situations and can be customized to meet the needs of individual projects
+- /Bootstrap/ is a popular framework for responsive web design that was originally developed by Twitter
+  + Bootstrap uses CSS and JavaScript to make a web page automatically adjust for different screen sizes
+** A responsive user interface
+- when using Bootstrap, changes to the layout for various screen sizes happen automatically
+** How to add cient-side libraries such as Bootstrap and jQuery
+- how to add the Bootstrap and jQuery libraries to a web app
+  1. in the Solution Explorer, expand the wwwroot/lib folder and delete any old Bootstrap or jQuery libraries
+  2. in the Solution Explorer, right-click on the project name and select the `Add` -> `Client-Side Library` item
+  3. in the dialog box that appears, type "jquery@", select "3.3.1" from the list that appears, click the `Install` button
+  4. repeat steps 2 and 3 for teh library named "twitter-bootstrap@4.3.1", but change the target location to "www/lib/bootstrap"
+  5. repeat steps 2 and 3 for the library named "jquery-validate@1.19.0"
+  6. repeat steps 2 and 3 for the library named "jquery-validation-unobtrusive@3.2.11"
+  7. in the Solution Explorer, expand the wwwroot/lib folder and view the libraries that have been installed
+- the /Library Manager/, also known as /LibMan/, can be used to add client-side libraries to a project
+- by convention, an ASP.NET Vore MVC app stores added libraries in the wwwroot/lib folder
+** How to manage client-side libraries with LibMan
+- to manage client-side libraries, open the libman.json file and edit it to specify the correct versions and locations for client-side libraries
+- to update all client-side libraries, so they match the libman.json file, right-click on the libman.json file and select the Restore Client-side Libraries item
+- to remove all client-side libraries, right-click on the libman.json file and select the Clean Client-Side Libraries item
+** How to enable client-side libraries
+- to make client-side CSS libraries available to the views in a web app, add the <link> elements for the CSS files to the <head> element in the Razor layout for the view
+- the <link> element for the Bootstrap CSS file should be coded before the <link> element for any custom CSS files
+  + this way, custom CSS styles override the Bootstrap styles
+  + creating separate CSS stylesheets is the preferred way of making changes to Bootstrap
+- to make client-side JS libraries available to the views in a web app, add the <script> elements for those libraries to the <head> element in the Razor layout for the view
+  + the <script> element for the jQuery library should come first, then the <script> element for the Bootstrap JS file
+- most of these libraries include a /minified/ version of the library that has removed unnecessary characters such as spaces and indentation
+  + this decreases the size of the file and improves load time but makes it more difficult for humans to read the library
+  + minified libraries are typically identified with a suffix of .min.css or .min.js
+- after any necessary <link> and <script> elements have been added to the web form, VS provides IntelliSense for the Bootstrap CSS classes
+- the /viewport/ is the part of the page that is visible to viewers
+  + the /viewport meta tag/ controls the width of the viewport
+- the MVC template may include an extra /dist folder for the Bootstrap, jQuery, and jQuery validation libraries
+* How to get started with Bootstrap
+** The classes of the Bootstrap grid system
+- Valid class values
+| Class                 | Description                                                                                                                     |
+|-----------------------+---------------------------------------------------------------------------------------------------------------------------------|
+| container             | contains rows or other content; centered in the <body> element, with a specific width based on the viewport size                |
+| conaitner-filled      | contains rows or other content; set to 100% of the width of the viewport                                                        |
+| row                   | contains columns inside a container                                                                                             |
+| col                   | a column inside a row that will be automatically sized                                                                          |
+| col-/size/-/count/    | the number of columns an element should span on the specified screen sized; the number of columns in a row should not exceed 12 |
+| offset-/size/-/count/ | the number of columns an elecent should be moved to the right on the specified screen size                                      |
+- calid size values
+| Size   | Description                                                                             |
+|--------+-----------------------------------------------------------------------------------------|
+| lg     | a large screen with a width greater than or equal to 1200 pixels (e.g. a large desktop) |
+| md     | a medium screen with a width greater than or equal to 992 pixels (e.g. desktops)        |
+| sm     | a small screen with a width greater than or equal to 768 pixels (e.g. tablets)          |
+| (none) | an extra small screen with a width less than 768 pixels (e.g. phones)                   |
+- Bootstrap uses a grid system based on containers, rows, and colummns
+  + all rows should be inside a container, and each row must contain no more than 12 columns
+- an element for each screen size can be assigned a different column class to specify the number of columns the element should span at those sizes
+- if a column class is not assigned for a screen size, the class for the next smallest screen size will be used
+** How the Bootstrap grid system works
+- Bootstrap CSS uses /rem units/ for sizing
+  + a rem (root em) unit works similarly to the mode traditional em unit, but its size is relatice to the root element rather than the current element
+** How to work with forms
+- some Bootstrap CSS classes for working with forms
+| Class           | Description                                                                   |
+|-----------------+-------------------------------------------------------------------------------|
+| form-vertical   | the form labels and controls stack vertically; this is the default for forms  |
+| form-horizontal | used with the grid system to align labels and controls in a horizontal layout |
+| form-group      | applies spacing to labels and controls that go together                       |
+| form-control    | applies styling to input, textarea, or select controls in a form              |
+| control-label   | applies styling to a control's label                                          |
+** How to work with buttons, images, and jumbotrons
+- a /jumbotron/ is a large grey box with rounded corners to highlight content
+- some of the Bootstrap CSS classes for working with buttons
+| Class                 | Description                                                        |
+|-----------------------+--------------------------------------------------------------------|
+| btn                   | produces a simple button with rounded corners                      |
+| btn-primary           | sets the background color to blue and the text to white            |
+| btn-secondary         | sets the background color to grey and the text to white            |
+| btn-outline-primary   | sets the background color to white and the border and text to blue |
+| btn-outline-secondary | sets the background color to white and the border and text to grey |
+- some of the Bootstrap CSS classes for working with images
+| Class     | Description                                                          |
+|-----------+----------------------------------------------------------------------|
+| img-fluid | makes the image automatically adjust to fit the size of the viewport |
+| rounded   | rounds the corners of the image                                      |
+- a Bootstrap CSS class for creating a jumbotron
+| Class     | Description |
+|-----------+-------------|
+| jumbotron | a large grey box with rounded corners and a large font |
+** How to work with margins and padding
+- some Bootstrap CSS classes for working with margins
+| Class     | Description                                                                                                                                 |
+|-----------+---------------------------------------------------------------------------------------------------------------------------------------------|
+| mt-/size/ | sets the margin for the top to a specified size from 0 to 5; by default, these sizes correspond to rem unit values of 0, .25, 1, 1.5, and 3 |
+| mr-/size/ | sets the margin for the right side to the specified size                                                                                    |
+| mb-/size/ | sets the margin for the bottom to the specified size                                                                                        |
+| ml-/size/ | sets the margin for the left size to the specified size                                                                                     |
+| m-/size/  | sets all four margins to the specifed size                                                                                                  |
+- some Bootstrap CSS classes for working with padding
+| Class     | Description                                                                                                                                   |
+|-----------+-----------------------------------------------------------------------------------------------------------------------------------------------|
+| pt-/size/ | sets the padding for the top to the specified size from 0 to 5; by default these sizes correspond to rem unit values of 0, .25, 1, 1.5, and 3 |
+| pr-/size/ | sets the padding for the right side to the specified size                                                                                     |
+| pb-/size/ | sets the padding for the bottom to the specified size                                                                                         |
+| pl-/size/ | sets the padding for the left side to the specified size                                                                                      |
+| p-/size/  | sets the padding for all four sides to the specified size                                                                                     |
+* More skills for Bootstrap CSS classes
+** How to format HTML tables
+- common CSS classes for working with HTML tables
+| Class            | Description                                                                                                                                         |
+|------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| table            | provides default styling for an HTML <table> element                                                                                                |
+| table-bordered   | adds a border around the table and between the cells                                                                                                |
+| table-striped    | adds alternating colors to the table rows                                                                                                           |
+| table-hover      | makes the color of a row change when you hover over item                                                                                            |
+| table-responsive | adds horizontal scrolling to the table when the viewport narrows; applied to a <div> element that contains a <table> element with a set table class |
+| w-/size/         | the width for a column in rems                                                                                                                      |
+- <thead> and <tbody> elements must be included in a table for the BootStrap classes to work properly
+** How to align and capitalize text
+- common CSS classes for text
+| Class           | Description                                               |
+|-----------------+-----------------------------------------------------------|
+| text-left       | aligns text to the left within the parent element         |
+| text-right      | aligns text to the right within the paren element         |
+| text-center     | aligns text in the center of the parent element           |
+| text-lowercase  | makes all text in the element lower case                  |
+| text-uppercase  | makes all text in the element upper case                  |
+| text-capitalize | capitalizes the first letter of every word in the element |
+- the Bootstrap classes for text control the alignment and capitalization for the text
+- the alignment classes control where the text of an element is displayed on the page relative to the element that contains it
+- the transformation classes control the capitalization for the text of an element
+** How to provide context
+- the context classes available to most elements
+| Class     | Description                                          | Default color |
+|-----------+------------------------------------------------------+---------------|
+| primary   | specifies that the element is a primary element      | dark blue     |
+| secondary | specifies that the element is a secondary element    | gray          |
+| success   | indicates a successful or positive outcome or action | green         |
+| info      | indicates nuetral information                        | light blue    |
+| warning   | indicates something that might need attention        | orange        |
+| danger    | indicates a dangerous or negative outcome or action  | red           |
+| light     | uses a light background                              | white         |
+| dark      | uses a dark background                               | gray          |
+- the context classes are typically combined with a prefix that indicates the element or component being styled
+  + the context classes can be applied without a prefix to some elements
+* More skills for Bootstrap components
+- Bootstrap also provides its own /components/
+** How to work with button groups
+- common CSS classes for creating button groups
+| Class              | Description                                                    |
+|--------------------+----------------------------------------------------------------|
+| btn-group          | groups two or more buttons with no padding between them        |
+| btn-toolbar        | combines button groups with appropriate padding between groups |
+| btn-group-/size/   | applies sizing to all buttons in a group; ex: `btn-group-lg`   |
+| btn-group-vertical | stacks buttons in a group vertically rather than horizontally  |
+- a /button group/ displays a group of buttons
+- for assistive technologies to work correctly with button groups, the role attribute for button groups and toolbars needs to be set
+  + in addition, the aria-label attribute should be specified
+** How to work with icons and badges
+- an /icon/ is a symbol that you use to decorate or add meaning to an element
+- Bootstrap 3 included a set of icons called Glyphicons, but Bootstrap 4 does not include these
+  + instead, the free icons available from Font Awesome can be used by including a <link> element to the CSS file fromm the Font Awesome website
+    - this is typically placed just below the <link> element for Bootstrap
+- to use an icon, include the base fas (Font Awesome Solid) class aling with the class for the individual icon you want to use
+  + the classes are typically coded in a <span> element that's coded within another element
+- FA icons do not have any padding by default
+  + this can be adjusted by adding a nonbreaking space (`&nbsp;`) to the HTML or by using Bootstrap classes or CSS to add space
+- when using icons, they should be made accessible
+  + this is particularly important if an icon doesn't decorate accompanying text
+    - if this case, content should be included to reflect the meaning of the icon that can be read by screen readers
+  + if icons decorate accompaying text, they should be hidden so they don't confuse screen readers
+- a /badge/ provides for hightlighting text within a component
+** How to work with button dropdowns
+- a /button dropdown/ can be created using the following classes and HTML5 element
+| Class           | Description                                                  |
+|-----------------+--------------------------------------------------------------|
+| dropdown        | marks the start and end of a dropdown list of items          |
+| dropdown-toggle | applies styling to a button that will function as a dropdown |
+| dropdown-menu   | applies styling to a dropdown menu                           |
+| dropdown-item   | applies styling to the items in a menu                       |
+| dropup          | works like a dropdown class but makes the list item drop up  |
+|-----------------+--------------------------------------------------------------|
+| Attribute       | Description                                                  |
+|-----------------+--------------------------------------------------------------|
+| data-toogle     | if set to "dropdown", makes a button dropdown                |
+- to create a dopdown, a <button> element must be coded for the button and a <div> element that contains a dropdown menu
+- a button dropdown needs the Popper.js library to work
+- to make the dropdown menu work with assistive technologies, `aria-` attributes can be included
+  + for this to work, teh dropdown menu can only include menu items, checkbox menu items, radio button menu items, radio button groups, and submenus
+** How to work with list groups
+- the CSS classes for /list groups/ allow a list of items such as links, buttons, and list items
+  + a list group can also be nested within another list group
+- common CSS classes for creating list groups
+| Class           | Description                                         |
+|-----------------+-----------------------------------------------------|
+| list-group      | groups two or more items in a list or <div> element |
+| list-group-item | styles the individual items in a list group         |
+| active          | hightlights the list group                          |
+| disabled        | grays out the list group item                       |
+- it's common to write code that sets the active class when the app is running
+  + that way, the active link can be changed depending on the user's actions
+- similarly, the disabled class can be used to disable a link depending on the user's actions
+** How to work with alerts and breadcrumbs
+- /alerts/ allow for context feedback to be provided within an app
+- common CSS classes and an HTML5 data attribute for creating alerts
+| Class             | Description                                                                                                                        |
+|-------------------+------------------------------------------------------------------------------------------------------------------------------------|
+| alert             | wraps text and HTML in a context message area                                                                                      |
+| alert-/context/   | applies a context class to an alert; ex: `alert-warning`                                                                           |
+| alert-dismissable | makes an alert dismissible; the div for the alert should include a button that uses the close class and the data-dismiss attribute |
+| alert-link        | styles links to match the styling of the alert that contains the link                                                              |
+| close             | provides for closing an alert                                                                                                      |
+|-------------------+------------------------------------------------------------------------------------------------------------------------------------|
+| Attribute         | Description                                                                                                                        |
+|-------------------+------------------------------------------------------------------------------------------------------------------------------------|
+| data-dismiss      | tells Bootstrap to dismiss theh alert                                                                                              |
+- /breadcrumbs/ display navigation links that are relative to the user's current location
+  + to make breadcrumbs work with assitive technologies, an aria-label attribute can be included on the element
+* How to work with navigation bars
+** How to create navs
+- CSS classes for /navs/ can be used to create labs and pills
+  + the difference between the tab and a pill is in the apearance of the active item
+- common CSS classes for creating navs
+| Class     | Description                                                                                                                                                                                            |
+|-----------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| nav       | groups two or more nav items                                                                                                                                                                           |
+| nav-tabs  | styles the nav items in a single line with the active item displayed as a tab                                                                                                                          |
+| nav-pills | styles the nav items in a single line with the active item displayed as a pill                                                                                                                         |
+| nav-item  | identifies a nav item such as an <li> item that contains a nav link; nav links can be coded outside of an <li> element, but it might be necessary to use this class to idenfify the link as a nav item |
+| nav-link  | specifies that the nav item is a link                                                                                                                                                                  |
+| active    | styles the active nav item or link differently than the other nav items                                                                                                                                |
+- dropdown menus can also be added to a nav component
+  + to do that, the code for the button dropdown needs to be nested within the nav component
+  + the styling for the button can be changed for the button so it looks good in the navigation bar
+** How to create navbars
+- the Bootstrap /navbar/ component creates a responsive menu bar that collapses to a dropdown menu on narrower viewports
+- common CSS classes and HTML5 data attributes for creating navbars
+| Class                      | Description                                                             |
+|----------------------------+-------------------------------------------------------------------------|
+| navbar                     | creates a responsive navigation bar that collapses in smaller viewports |
+| nabvar-expand-/size/       | sets the minimum size for the nabvar to be expanded                     |
+| navbar-/light/-/or/-/dark/ | sets the color scheme for a light or dark background color              |
+| navbar-brand               | identifies the brand for the navbar                                     |
+| nabvar-toggler             | identifies and styles the toggler button                                |
+| navbar-collapse            | identifies and styles the parts of the navbar that collapse             |
+| collapse                   | collapse the navbar unttil the user clicks on the toggler button        |
+| navbar-nav                 | identifies and styles part of a navbar                                  |
+| navbar-/alignment/         | aligns the nav items to the right or the left; ex: `navbar-right`       |
+|----------------------------+-------------------------------------------------------------------------|
+| Attribute                  | Description                                                             |
+|----------------------------+-------------------------------------------------------------------------|
+| data-toggle                | if set to "collapse", makes the navbar collapsible                      |
+| data-target                | identifies the HTML element that will be changed                        |
+** How to position navbars
+- when coded as the first element in the <body> element, the navbar stretches across the entire viewport
+  + when nested within a container element such as a <div> element, it causes the navbar to span the width of the container element
+- more CSS classes for positioning navbars
+| Class        | Description                                                                                                                                                      |
+|--------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| fixed-top    | makes the navbar stay at the top of the screen even when the user scrolls; will overlay other content unless enough margin is added to the top of the body       |
+| fixed-bottom | makes the navbar stay at the bottom of the screen even when the user scrolls; will overlay other content unless enough margin is added to the bottom of the body |
