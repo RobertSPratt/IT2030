@@ -1,0 +1,105 @@
+#+TITLE: Chapter 04 - How to develop a data-driven MVC web app
+
+* An introduction to the Movie List app
+** The folders and filed of the app
+- the Migrations folder contains files that are used to create and update the underlying database
+* How to use EF Core
+- /entity framework (EF) Core/ is an /object-relational mapping (ORM)/ framework that allows one to work with the objects of a database in code
+** How to add EF Core to your project
+- with .NET Core 3.0 and later, EF Core and EF Core Tools must be manually added to a project
+  1. click the Browse link in the upper left of the windo
+  2. type "Microsoft.EntityFrameworkCore.SqlServer" in the search box
+  3. click on the appropriate package from the list that appears
+  4. in the right-hand panel, check the project name, select the version that matches the version of .NET Core you're running, and click Install
+  5. review the Preview Changes dialog that comes up and click OK
+  6. review the License Acceptance dialog that comes up and click "I Accept"
+  7. type "Microsoft.EntityFrameworkCore.Tools" in the search box
+  8. repeat steps 3 through 6
+** How to create a DbContext class
+- the most common way to work with EF Core is to code model classes first
+  + then EF Core is used to generate a database from those classes
+- three classes provided by EF Core
+| Class            | Description                                               |
+|------------------+-----------------------------------------------------------|
+| DbContext        | the primary class for communicating with a database       |
+| DbContextOptions | stores configuration options for the DbContext object     |
+| DbSet<Entity>    | a collection of objects created from the specified entity |
+- model classes are also known as /entity classes/ or /domain model classes/
+- within the DbContext class, DbSet<Entity> properties can be used to work with the model classes that map to database tables
+- any property in an entity with a name of Id (or ID) or the entity name followed by Id (or ID) is a /primary key/
+  + if this property is also of the int type, the corresponding column is an /identity column/ whose value is automatically generated
+** How to seed initial data
+- to /seed/ initial data in the database, the OnModelCreating(mb) method can be used
+  + this method is called by the framework when the context is created and but the programmer can override it to configure their content
+- the OnModelCreating() method accepts a ModelBuilder object as an argument
+  + the Entity().HasData() method of this object can be used to seed initial data in the database
+- the thn HasData() method is used to seed data, values for the Id properties, even the ones that will be configures as identity columns, need to be provided
+** How to add a connection string
+- a /connection string/ is a string that specifies information that an app needs to connect to a database or other data source
+- it's generally considered best practice to store connection strings in a configuration file, instead of hard-coding them in the app
+  + for Core MVC apps, a configuration file named appsettings.json is typically used
+** how to enable dependency injection
+- /dependency injection/ is a design pattern in which the services an object needs are passed to it, rather than being hard-coded as part of the object
+  + this /decouples/ the object from its dependencies and makes it easier to test
+- Core MVC uses dependency injection to pass DbContext objects to the controllers that need them
+  + to enable this, code needs to be added to the Startup.cs file
+- the AddDbContext() method will need to be called from within the ConfigureServices() method
+  + it is typically passed a lambda expression tha tcreates a DbContextOptions object, which gets passed to the constructor of the DbContext class
+** How to use migrations to create the database
+- Once the DbContext class and entity classes have been coded, EF Core must be told to translate them into a database
+- if an app is ran before its database is created, an error message that indicates that the app cannot open the database is thrown
+- a /migration/ is a file that contains C# code for creating, modifying, or deleting database objects
+  + more specifically, it has an Up() method with C# code that implements a migration and a Down() method with C# code that rolls back a migration
+    - both of these accept a MigrationBuilder object to do their work
+* How to work with data
+- /language-integrated query (LINQ)/ is used to select data
+** How to select data
+- there are two steps to using LINQ and EF Core to select data from a database:
+  1. build a /query expression/
+  2. execute the query expression at the database
+- LINQ methods that build or execute a query expression
+| Method                 | Description                                                                                                         |
+|------------------------+---------------------------------------------------------------------------------------------------------------------|
+| Where(lambda)          | filters the entities according to the logic of the lambda expression                                                |
+| OrderBy(lamda)         | orders the entities according to the logic of the lambda expression                                                 |
+| FirstOrDefault(lambda) | returns the first instance of the entity identified by the lambda expression parameter, or null if nothing is found |
+| ToList()               | returns a List<T> object with one or more entities                                                                  |
+- the Find(id) method returns the first instance of the entity identified by the id value for its primary key, or null if nothing is found
+** How to insert, update, and delete data
+- three methods of the DbSet class
+| Method         | Description                                                   |
+|----------------+---------------------------------------------------------------|
+| Add(entity)    | adds an entity to the DbSert collection and marks it as Added |
+| Update(entity) | marks the entity as Modified                                  |
+| Remove(entity) | marks the entity as Deleted                                   |
+- the above methods do not execute the code against the database, but marks the entities that require database action
+- the SaveChanges() method saves the changes to/executes the operations at the database
+** How to view the generated SQL statements
+- the logging setting can be added to the appsettings.json file to view the SQL statements
+  + this setting can be deleted or it's value changed to "Warning" when SQL statements no longer need to be seen
+* How to work with related data
+** How to relate one entity to another
+- one entity can be related to another by coding a property with that entity class as its data type
+- a /foreign key property/ indicates the property that's the primary key in the related class
+- using a foreign key property makes it easier to seed, update, validate, or query related data
+  + as a result, it's considered best practice to use a foreign key property when performing these operations
+** How to update the DbContext class and the seed data
+- when adding new entites to an app, they must also be added to the DbContext class as properties
+- the initial data for the new entities can also be seeded
+  + if the new entites are related to existing ones, the seed data for the existing entities can be updated
+- EF Core uses the updated DbContext class and seed data to change the database
+** How to use migrations to update the database
+- how to update the database with a new model and seed data
+  1. select Tools -> NuGet Package Manager -> Package Manager Console to open the Package Manager Console window
+  2. type "Add-Migration <modelName>" at the command prompt and press Enter
+  3. type "Update-Database" at the command prompt and press enter
+* How to make user-friendly URLs
+** How to make URLs lowercase with a trailing slash
+- by default, MVC uses the names of the controllers and their action methods to create the URLs of the app
+  + by convention, these names begin with an uppercase letter
+- it's generally considered good practice to use lowercase letters for URLs
+- some developers like to include a trailing slash after a URL, making it easy for users to type text at the end of a URL
+- Startup.cs can be modified to make URLs lowercase with a trailing slash
+** How to add a slug
+- a /slug/ is a descriptive section at the end of a URL
+- a slug can be added by adding an optional route parameter named slug to the Startup.cs file, adding a Slug property to the entity class, and including the Slug property on a link
