@@ -1,0 +1,70 @@
+#+TITLE: Chapter 05 - How to manually test and debug an ASP.NET Core web app
+
+* How to test an ASP.NET Core web app
+- the goal of testing an app is to find all of the errors
+- to /debug/ an app is to determine the cause of any errors
+** How to run a web app
+- to change the default browser, display the Start drop-down menu by clicking on its arrow
+  + then, display the Web Browser menu and select a browser from it
+- how to run an app with debugging
+  + press `F5`
+  + click the start button in the Standard toolbar
+  + press Debug -> Start Debugging
+- how to stop debugging
+  + press `Shift`+`F5`
+  + click the Start button in the Standard toolbar
+  + select Debug -> Stop Debugging
+- how to run an app in multiple browsers
+  + to run an app in two or more browsers, select Browse With from the Start drop-down menu
+    - then, in the resulting dialog, hold down the `Ctrl` key, select the browsers you want to use, and click the Browse button
+  + when running an app in more than one browser, the app is running without debugging
+** How to use the browser's developer tools
+- most browsers provide /developer tools/ that let you view the HTML elements and CSS styles that are rendered by the web server
+  + the /developer tools/ of the major browsers provide some excellent debugging features, like viewing the HTML elements rendered by the web server and viewing the styles appllied to those HTML elements
+- to open and close the developer tools in Chrome, Firefox, and Edge
+  + to open, press `F12`, or right-click an element in the page and select Inspect
+  + to close, press `F12`, or click the X in the upper right corner of the tools panel
+- how to open and close the developer tools in Opera and Safari
+  + to open, right click an element in the page and select Inspect Element
+  + to close, click the X in the upper right corner of the tools panel
+  + in Safari, you must enable the developer tools before you can use them
+    - to do that, select Preferences, click the Advanced tab, and then select the "Show Develop menu" item
+- how to view the rendered HTML and CSS styles
+  + open the appropriate panel by clicking on its tab
+    - in Firefox, it's called the Inspector tab
+    - in Chrome, Safari, and Opera, it's called the Elements tab
+  + expand the nodes to navigate to the element you want, and then click that element
+  + the HTML elements for a page are typically shown in the top of the panel, and the CSS styles for the selected element are typically shown below the HTML elements
+** How to use the Internal Server Error page
+- an /exception/ is an error that may occur when an app is run
+  + if an exception occurs and isn't handled, the app can't continue
+- during development, if an exception occurs, ASP.NET Core typically stops the app and sends an Internal Server Error page to the browser
+  + this can be replaced with a user-friendly page designed for end users when the app is ready to be deployed
+- by default, the Internal Server Error page selects the Stack link to display a /stack trace/
+  + a /stack trace/ is a list of the methods that were active when the exception occurred
+  + information about the current request can also be displayed by clicking the Qurey, Cookies, Headers, and Routing links
+** How to use the Exception Helper
+- when running an app with debbugging when an exception occurs, the debugger stops on the line of code that caused the exception and displays the Exception Helper
+- the Exception Handler provides the name and description of the exception and points to the statement that caused it
+  + it also includes links to view the details, copy the details, or start a Live Share session
+  + it often provides all of the information needed to determine the cause of the exception
+- since the Exception Helper is a non-modal dialog box, code can be edited while it is open
+- to close the Exception Helper, click the X in its upper right corner
+  + then, it can be opened again by clicking on the exception icon, displayed to the right of the statement that caused the exception
+- if the program is continued after an exception occurs, by either pressing `F5` or clicking on the continue button, ASP.NET Core terminates the app and sends an error page to the browser
+* How to use the debugger
+** How to use breakpoints
+- when VS encounters a /breakpoint/ it enters /break mode/ befor it executes the statement on which the breakpoint is set
+- breakpoints can be set and removed before the app is ran or while in break mode
+- breakpoings can only be set on a line that contains an executable statement
+- how to set and remove breakpoints
+  + to set a breakpoint, click in the margin indicator bar to the left of the line number for a statement
+    - this highlights the statement and adds a breakpoint indicator (a red dot) in the margin
+  + to remove a breakpoint, click the breakpoint indicator
+  + to remover all breakpoints, select Debug -> Delete All Breakpoints
+- how to enable and disable breakpoints
+  + to enable or disable a breakpoint, point to the breakpoint indicator and select Enable/Disable Breakpoint from the resulting menu
+  + to disable all breakpoints, select Debug -> Disable All Breakpoints
+  + to enable all breakpoints, select Debug -> Enable All Breakpoints
+  + to display the Breakpoints window, select Debug -> Windows -> Breakpoints
+    - this window is most useful for enabling existing breakpoints
