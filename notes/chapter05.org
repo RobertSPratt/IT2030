@@ -68,3 +68,46 @@
   + to enable all breakpoints, select Debug -> Enable All Breakpoints
   + to display the Breakpoints window, select Debug -> Windows -> Breakpoints
     - this window is most useful for enabling existing breakpoints
+** How to work in break mode
+- in break mode, the debugger highlights the next statement to be executed
+  + then, the debugging window and the buttons in the Debug menu and toolbar can be used to control the execution of the program and determine the cause of an exception
+- to display the value of a variable or property in a /data tip/, position the mouse pointer over the variable or property in the Code Editor window
+  + the pin icon can also be used to the right of a data tip to pin the data tip so it remains displayed
+- commands in the Debug menu and toolbar
+| Command        | Keyboard       | Function                                                  |
+|----------------+----------------+-----------------------------------------------------------|
+| Start/Continue | F5             | start or continue execution of the app                    |
+| Break All      | Ctrl+Alt+Break | stop execution and enter break mode                       |
+| Stop Debugging | Shift+F5       | stop debugging and end execution of the app               |
+| Restart        | Ctrl+Alt+F5    | restart the entire app                                    |
+| Step Into      | F11            | execute one statement at a time                           |
+| Step Over      | F10            | execute one statement at a time except for called methods |
+| Step Out       | Shift+F11      | execute the remaining lines in the current method         |
+- to display the numbers of an array, structure, or object in a data tip, position the mouse pointer over it to display its data tip, and then point the arrow to the left of the data tip
+- the Step Into, Step Over, and Step Out commands can be used to execute one or more statements and return to break mode
+- to stop an app that's caught in a loop, use the Debug -> Break All command
+** How to monitor variables and expressions
+- how to use the Locals, Autos, and Watch windows
+  + the Locals window displays information about the variables within the scope of the current method
+  + the Autos window works like the Locals window, but it only displays information about variables used by the current statement and the previous statement
+  + the Watch windows let you view the values of variables and expressions that you specify, called /watch expressions/
+    - to add a watch expressoin, type a variable name or expression into the Name column
+    - to delete a row from a Watch window, right-click the row and select Delete Watch
+- how to use the Immediate window
+  + to display the current value of a variable or expression, type a question mark followed by a variable name or expression and press enter
+  + to execute a statement, type the statement and press enter
+  + to execute an existing command, press the Up or Down arrow until you have displayed the command and press enter
+  + to remove all command and output, right-click the window and select Clear-All
+- to display these Windows, if the window's tab is visible, click the tab
+  + otherwise, select the window from the Debug -> Windows menu
+** How to use tracepoints
+- VS also provides a feature called /traecepoints/
+  + a tracepoint is a special type of breakpoint that performs an action when it's encountered
+  + they are typically used to log messages; which can include text, variables, expressions, and special keywords; to the Output window
+  + are marked with a red triangle by VS
+- to set a new tracepoint, right-click a statement and select Breakpoint -> Insert Tracepoint and then complete the Breakpoint Settings window
+- to convert an existing breakpoint to a tracepoint, point to the breakpoint icon, click the Settings icon that looks like a gear, and complete the Breakpoint Settings window
+- for a tracepoint, the Breakpoint Settings window should have the continue Execution option selected
+  + this prevents it from entering berak mode like a breakpoint
+- when logging a message to the Output window, you can include the value of a variable or other expression by placing it inside curly braces
+  + special keywords such as `Function` by coding a `$` followed by the keyword
