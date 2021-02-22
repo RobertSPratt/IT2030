@@ -1,0 +1,100 @@
+#+TITLE: Chapter 06 - How to work with controllers and routing
+* How to use the default route
+** How to configure the default route
+- Startup.cs uses a a routing system known as /endpoint routing/ to configure the default route for an ASP.NET Core MVC app
+  + it was introduced in ASP.NET Core 2.2 and is recommended for development with ASP.NET Core 3.0 and later
+- the necessary MVC services need to be added to the app before endpoint routing can be used
+  + this is done by adding one or more statements to the ContfigureServices() method
+  + with ASPNET Core 3.0 and later, the AddControllersWithViews() method is called
+- after necessary services are added, routing will need to be configured
+- the method for adding the MVC service
+| Method                   | Description                                                                                                                                                       |
+|--------------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AddControllerWithViews() | adds the services necessary ot support an MVC app; available with ASP.NET Core 2.2 and later                                                                      |
+| AddMvc()                 | adds the services necessary to support an MVC app; this includes some services that aren't neccesary for MVC apps and is available with older versions of ASP.NET |
+- two methods for enabling and configuring routing
+| Method                    | Description                                        |
+|---------------------------+----------------------------------------------------|
+| UseRouting()              | selects the endpoint for the route if one is found |
+| UseEndpoints(/endpoints/) | executes the endpoint selected by the routing      |
+- betwen the UseRouting() and EndRouting() methods, and services can be added to run after routing decisions have been made but before they have been executed
+- alternatively, the MapControllerRoute() method can be used to map the default route for controllers
+  + this approach has the advantage of being shorter and easier to code
+  + it can allow other programmers to easily view and modify the pattern
+** How the default route works
+- a /segment/ is an individual section of the path beyond the domain
+- the /default route/ specifies how to handle three segments
+  + the pattern for the default route: `{controller=Home}/{action=Index}/{id?}`
+  + the first segment specifies the controller
+  + the second specifies the action method
+  + the third specifies an argument for the id parameter of the action method
+- how request URLs map to controller classes and their action methods
+| Request URL                           | Controller | Action | Id      |
+|---------------------------------------+------------+--------+---------|
+| http://localhost                      | Home       | Index  | null    |
+| http://localhost/Home                 | Home       | Index  | null    |
+| http://localhost/Home/Index           | Home       | Index  | null    |
+| http://localhost/Home/About           | Home       | About  | null    |
+| http://localhost/Product              | Product    | Index  | null    |
+| http://localhost/Product/List         | Product    | List   | null    |
+| http://localhost/Product/List/Guitars | Product    | List   | Guitars |
+| http://localhost/Product/Detail       | Product    | Detail | 0       |
+| http://localhost/Product/Detail/3     | Product    | Detail | 3       |
+** How to code a simple controller and its actions
+- the class for an MVC controlle typically inherits the Controller class from Microsoft's AspNetCore.Mvc namespace
+- within the class for a controller, an action method typically returns an object that implements the IActionResult interface, such as a ContentResult or ViewResult object
+  + the Content() method returns a ContentResult object that contains the specified string
+- to test a controller, run the app and enter a URL in the browser's address bar
+* How to create custom routes
+** How to include static content in a route
+- all of the segments in te default pattern are dynamic
+  + they specify content that can change with each URL
+- to include static content as part of a segment, use a string literal
+- to achieve a similar result without mixint static and dynamic content in a segment, code a routing pattern that specifies a completly static segment followed by a completely dynamic segment
+** How to work with multiple routing patterns
+- it's common to use custom routes  in addition to the default route and other custom routes
+- when mapping routing patterns, the specific pattern must be coded first and the most general pattern last
+  + otherwise the most general pattern will process all URLs
+* how to use attribute routing
+- route attributes in the Startup.cs file can be overridden by adding Route attributes to the action methods of a controller or to the class for the controller
+  + this is known as /attribute routing/
+** How to change the routing for an action
+- to specify a static route, code a string literal within the Route attribute
+- to insert the name of the current controller or action into a route, use the [controller] or [action] tokens
+  + since this makes the code more flexible, it is generally considered a best practice
+** More skills for changing the route for an action
+- to insert other segments into a route, use all of the skills for coding segments
+- if a controller contains methods that aren't action methods, the NonAction attribute can be coded above it to prevent it from being mapped to a URL
+** How to change the routing for a controller
+- it is possible to use attribute routing to override the routing for all actions within a controller
+  + this is done by coding a Route attribute directly above the declaration for the controller's class
+- as with actions, the attribute routing for a controller overrides the default rounting
+  + as a result, when attribute routing is used for the controller, the default routing can no longer be used to request actions of the controller
+* Best practices for creating URLs
+- best practices
+  + keep the URL as short as possible while still being descriptive and user-friendly
+  + use keywords to describe the content of a page, not implementation details
+  + make your URLs easy for humans to understand and type
+  + use hyphens to separate words, not other characters, especially spaces
+  + prefer names as identifiers over numbers
+  + create an intuitive hierarchy
+  + be consistent
+  + avoid the use of query string parameters if possible
+- once a website goes into production, its URLs shouldn't be changed
+- well-designed URLs can improve the usability of the app for both developers and end users
+  + they can also improve the search engine optimization (SEO) for the app
+- a /slug/ is a string that describes the content of a page
+  + using a slug can make the URLs more user-friendly
+- using hyphens to separate words is known as /kebab case/
+* how to work with areas
+- an ASP.NET Core MVC app can have multiple /areas/
+  + each area can have its own controllers, models, and views, which can help to organize the folders and files of an app
+** How to set up areas
+- by convention, areas are created by adding a folder named Areas to the root folder for the app
+  + then, within it, add a folder for the area
+- within the area's folder, any necessary subfolders can be added
+  + these include Controllers, Models, Views, etc.
+- to configure the route for an area, use the MapAreaControllerRoute() method to add a route that specifies the naem of the area and its routing pattern
+** How to associate controller with areas
+- before a controller can be used with an area, the Area attribute mus t be coded to associate it with an area
+- once the Area attribute has been added to the controller, the [area] token can be used to specify the routing for the controller
