@@ -1,0 +1,176 @@
+#+TITLE: Chapter 07 - How to work with Razor views
+* How to use Razor syntax
+** How to work with code blocks and inline expressions
+- the syntax for a Razor code blocks
+  #+begin_src java
+  @{
+    // one or more C# statements
+  }
+  #+end_src
+- the syntax for an inline expression
+  #+begin_src java
+  @(csharp_expression)
+  #+end_src
+- a controlled action method that sets up data for a view
+  #+begin_src java
+  public IActionResult Index()
+  {
+    ViewBag.CustomerName = "John";
+    return View(); //returns Views/Home/Index.cshtml
+  }
+  #+end_src
+- parentheses are not needed for an inline expression if it only shows the value of a variable or property
+- in general, it is considered best practice to perform arithmetic calculations in the view controller or model and pass it to the view
+- to execute one or more C# statements, a Razor /code block/ must be declared with the `@` sign followed by a pair of `{}`
+  + within the curly braces, C# statements can be coded
+** How to code inline loops
+- a for loop that displays a drop-down list of month numbers
+  #+begin_src java
+  @for (int month = 1; month <= 12; month++)
+  {
+    <option value="@month">@month</option>
+  }
+  #+end_src
+- code in a controller that creates a list of strings
+  #+begin_src java
+  public IActionResult Index()
+  {
+    ViewBag.Categories = new List<string>
+    {
+        "Guitars", "Basses", "Drums"
+    };
+    return View();
+  }
+  #+end_src
+- a foreach loop that displays a list of links
+  #+begin_src java
+  @foreach (string category in ViewBag.Categories)
+  {
+    <div>
+        <a href="/Product/List/@category/">@category</a>
+    </div>
+  }
+  #+end_src
+- /inline loops/ can be coded within a view
+  + within these, HTML tags can be used to send HTML to the view
+** How to code inline conditional statements
+- an if-else statement in a view
+  #+begin_src java
+  @if (ViewBag.ProductID == 1)
+  {
+    <p>Fender Stratocaster</p>
+  }
+  else if (ViewBag.ProductID == 2)
+  {
+    <p>Gibson Les Paul</p>
+  }
+  else
+  {
+    <p>Product Not Found</p>
+  }
+  #+end_src
+- a switch statement in a view
+  #+begin_src java
+  @switch (ViewBag.ProductID)
+  {
+    case 1:
+        <p>Fender Stratocaster</p>
+        break;
+    case 2:
+        <p>Gibson Les Paul</p>
+        break;
+    default:
+        <p>Product Not Found</p>
+        break;
+  }
+  #+end_src
+- an if statement that adds a Bootstrap CSS class if true
+  #+begin_src html
+  <a asp-controller="Product" asp-action="List" asp-route-id="ALL"
+        class="list-group-item
+        @if (ViewBag.SelectedCategoryName == "All") {
+            <text>active</text>
+        }">
+        All
+  </a>
+  #+end_src
+- an /inline conditional expression/ that adds a Bootstrap CSS class if true
+  #+begin_src html
+  <a asp-controller="Product" asp-action="List" asp-route-id="All"
+        class="list-group-item
+        @(ViewBag.SelectedCategoryName == "All" ? "active" : "")">
+        All
+  </a>
+  #+end_src
+- /inline conditional statements/ can be coded within a view
+  + these statements can use HTML tags to send HTML to the view
+- the `<text>` can be used to send plain text to a view
+  + this is useful for sending part of an HTML tag such as an HTML attribute or its value
+- /inline conditional expressions/ can be coded using the ternary conditional operator
+* Essential skills for Razor views
+** The starting folders and files for an app
+- by convention, views for an app are stored in a series of folders and files whose names correspond to the controllers and action methods that return the views
+- the Startup.cs file typically contains code that configures the middleware for the app, including the routing that specifies how controllers and their action methods are mapped to URLs
+- the Program.cs file sets up the app, including defining the Startup class
+- the starting folders and filed fo a guitar shop app
+  #+begin_src html
+  GuitarShop
+    /Controllers
+        /HomeController.cs
+        /ProductController.cs
+    /Models
+        /Category.cs
+        /Product.cs
+    /Views
+        /Home
+            /Index.cshtml   -- the view for the Home/Index action
+            /About.cshtml   -- the view for the Home/About action
+        /Product
+            /List.cshtml    -- the view for the Product/List action
+            /Details.cshtml -- the view for the Product/Details action
+            /Update.cshtml  -- teh view for the Product/Update action
+        /Shared
+            /_Layout.cshtml -- a layout that can be shared by views
+        _ViewImports.cshtml -- imports models and tag helpers for views
+        _ViewStart.cshtml   -- specifies the default layout for views
+    /wwwroot
+        /css
+            /custom.css
+        /lib
+            /boostrap/cs/boostrap.min.css
+    Startup.cs              -- configures middleware that may impact views
+    Program.cs              -- sets up the app
+  #+end_src
+** How to code controllers that return views
+- a method that a controller can use to return a view result to the browser
+| Method     | Description                                                                                          |
+|------------+------------------------------------------------------------------------------------------------------|
+| View()     | creates a ViewResult object that corresponds to the name of the current controller and action method |
+| View(name) | cerates a ViewResult object that corresponds to the current controller and the specified view name   |
+- a controller typically contains action methods that are mapped to the view files in the Views folder
+** How to create a default layout and enable tag helpers
+- how to add a Razor layout, view start, or view imports file
+  1. right-click on the folder where you want to add the filer, select the Add->New Item item
+  2. in the resulting dialog, select the ASP.NET Core->Web category
+  3. select the Razor item you want to add and respond to the resulting dialog boxes
+- to specify code that's shared between multiple view files, add a Razor layout to the Views/Shared folder of your project
+- within a Razor layout, the ViewBag or ViewData property is often used to display a title thta's set in the view
+- witihn a Razor layout, the RenderBody() method renders the body of the view
+- to specify a default layout for all views, add a _ViewStart file to the Views folde of the project and set the Layout property to the name of the Razor layout
+  #+begin_src java
+  @{
+    Layout = "_Layout";
+  }
+  #+end_src
+- to enable all ASP.NET Core MVC tag helpers for all views, add a _ViewImports file to the Views folder of the project
+  #+begin_src java
+  @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+  #+end_src
+** How to use tag helpers to generate URLs for links
+- in general, it's considered best practice to use tag helpers to generate the URL for a link
+- three tag helpers to generate URLs
+| Tag helper          | Description                                                                                                                                                                                                                                                                               |
+|---------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| asp-controller      | specifies the contoller; only neccessary if a URL for an action methor from another controller is wanted                                                                                                                                                                                  |
+| asp-action          | specifies the action method                                                                                                                                                                                                                                                               |
+| asp-rout-param_name | specifies a route parameter where param_name is the name of the parameter; if a name that exists in one of the app's rouse is specified, the app uses the value as a segment of the URL, otherwise it adds the paramater name and value to the end of the URL as part of its query string |
