@@ -174,3 +174,91 @@
 | asp-controller      | specifies the contoller; only neccessary if a URL for an action methor from another controller is wanted                                                                                                                                                                                  |
 | asp-action          | specifies the action method                                                                                                                                                                                                                                                               |
 | asp-rout-param_name | specifies a route parameter where param_name is the name of the parameter; if a name that exists in one of the app's rouse is specified, the app uses the value as a segment of the URL, otherwise it adds the paramater name and value to the end of the URL as part of its query string |
+- two ways to code the same link
+  + use HTML to hard code the URL in the href attribute
+    #+begin_src html
+    <a href="/Product/List/Guitars">View guitars</a>
+    #+end_src
+  + use ASP.NET tag helpers to generate the URL
+    #+begin_src html
+    <a asp-controller="Product" asp-action"List" asp-route-id="Guitars">View guitars</a>
+    #+end_src
+- how to code a link to an action method in a different controller
+  #+begin_src html
+  <a asp-controller="Product" asp-action="List">View all products</a>
+  #+end_src
+- how to code a link that includes a parameter that's in a route
+  #+begin_src html
+  <a asp-controller="Product" asp-action="List" asp-route-id="Guitars">View guitars</a>
+  #+end_src
+- a link that specifies a route parameter that doesn't exist
+  #+begin_src html
+  <a asp-controller="Product" asp-action="List" asp-route-page="1" asp-route-sort_by="price"> Products - Page 1</a>
+  #+end_src
+  + the URL that's generated: /Product/List?page=1&sort_by=price
+** Three views that use the default layout
+- if the Razor code block at the top of the page doesn't set the Layout property, these views use the layout (_Layout) that's specified by the _ViewStart file
+* More skills for Razor views
+** More tag helpers for generating URLs for links
+| Tag helper   | Description                                                                                                                        |
+|--------------+------------------------------------------------------------------------------------------------------------------------------------|
+| asp-area     | specifies the area for the URL                                                                                                     |
+| asp-fragment | specifies the placeholder that you want to jump to                                                                                 |
+| asp-protocol | specifies the protocol, set to HTTP by default; it's common for apps to automatically redirect to HTTPS, even if HTTP is specified |
+| asp-host     | specifies the name for the host server                                                                                             |
+- a URL /fragment/ allows you to jump to a specified placeholde on a web page
+  + in a URL, a fragment is preceded by the has mark (`x`)
+- a /relative URL/ is one that's relative to the app's root directory
+- an /absolute URL/ is one that specifies the host
+- relative URLs are more flexible than absolute URLs because they allow the app to work on multiple hosts
+  + as a result, absolute URLs should only be used when coding a link to a specific host outside of the app
+** How to format numbers in a view
+- in a Razor expression, C#'s format specifiers can be used to format a number as currency or a percent
+  + one way to do this is to call the ToString() method from the numeric data type and pass it the format specifier
+- format specifiers used to format numbers
+| Specifier | Name     | Description                                                   |
+|-----------+----------+---------------------------------------------------------------|
+| C         | currency | formats a number as a currency value for the current locale   |
+| N         | number   | formats a number using a separator for the thousandths places |
+| P         | percent  | formats a number as a percent                                 |
+- by default, the format specifiers return two decimal places, but the number can be specified by adding a value after the specifier
+- if necessary, the format specifiers round numbers to the nearest decimal place
+* How to work with a model
+** How to pass a model to a view
+- a /model/ is a regular C# class that defines and object
+- in a controller, the View() method can be used to pass a model object to a view
+  + a method that a controller can use to pass a model to a view
+| Method            | Description                                                                                    |
+|-------------------+------------------------------------------------------------------------------------------------|
+| View(model)       | passes the specified model to the corresponding view and creates a ViewResult object           |
+| View(name, model) | passes the specified model to the view with the specified name and creates a ViewResult object |
+** How to display model properties in a view
+- in a view, the @model directive is used to bind a model to a view
+  + after that, the Model property is used to access the properties and methods of the model object
+- a directive and a property used to display model properties in a view
+| Razor syntax | Description                                                                                    |
+|--------------+------------------------------------------------------------------------------------------------|
+| @model       | a directive that specifies the data type (class) for the model and binds the model to the view |
+| @Model       | accesses the built-in Model property that accesses the model object that's bound to the view   |
+** How to bind model properties to HTML elements
+- in a form, the asp-for tag helper is typically used to bind model properties to HTML elements such as the <label> and <input> elements
+** How to bind a list of items to a <select> element
+- the as-items tag helper can be used to bind items to a <select> element
+  + this creates the <option> elements for the <select> element
+- the construct for the SelectList class: SelectList(list, value, text, selectedValue)
+  + it specifies the enumerable collection that contains the objects for each item, an optional property name that specifies the data value for the item, and an optional value that specifies the value of the selected item
+* How to work with Razor layouts
+** How to create and apply a layout
+- a project can contain multiple Razor layouts, allowing different views to use different layouts
+** How to nest layouts
+- to avoid code duplication, layouts can be built by nesting one within another
+** How to use view context
+- a layout can use the ViewContext property to get data bout the route of the current view
+  + then, it can use this data to perfom tasks such as setting the active navigation link
+** How to use sections
+- within a view, Razor code can be used to specify a /section/, which is a block of content that has a name
+- within a layout, the RenderSection() method can be used to insert the content from a section into the layout: RenderSection(name, isRequired)
+  + inserts the content from the section within the specified name into the layout
+  + if the section is required, all views must include a section with the specified name or attempting to view the page will result in an error
+- sections are commonly used to insert <script> elements for additional JavaScript files into a layout
+  + that way, the views that need those files can insert them into the layout, and the views that don't need them don't insert anything into the layout
