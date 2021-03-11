@@ -1,0 +1,135 @@
+#+TITLE: Chapter 08 - How to transfer data from controllers
+
+* How to use ActionResult objects
+** An introduction to ActionResult subtypes
+- the ActionResult type provides information to MVC about the type of HTTP response an action method should return
+- common ActionResult subtypes
+| Class                  | Description                                                                                                          |
+|------------------------+----------------------------------------------------------------------------------------------------------------------|
+| ViewResult             | renders a specified view as HTML and sends it to the browser                                                         |
+| RedirectResult         | perfoms an HTTP redirection to the specified URL                                                                     |
+| RedirectToActionResult | perfoms an HTTP redirection to a URL that's created by the routing system using specified controller and action data |
+| JsonResult             | serializes an object to JSON and sends the JSON to the browser                                                       |
+| FileResult             | returns a file to the browser                                                                                        |
+| StatusCodeResult       | sends an HTTP response with a status code to the browser                                                             |
+| ContentResult          | returns plain text to the browser                                                                                    |
+| EmptyResult            | returns an empty response to the browser                                                                             |
+- within a controller, an action method can return any type of ActionResult object
+  + the ActionResult class is an abstract class that implements the IActionResult interface
+- since the ActionResult class has many subtypes, an action method can return many different types of result objects
+** How to return ActionResult objects
+- the ActionResult object returned by an action method tells MVC the type of response that should be sent to the browser
+  + the Controller class provides several methods that create an ActionResult object
+- some methods of the Controller class that return an ActionResult object
+| Method             | Creates                       |
+|--------------------+-------------------------------|
+| View()             | ViewResult object             |
+| Redirect()         | RedirectResult object         |
+| RedirectToAction() | RedirectToActionResult object |
+| File()             | FileResult object             |
+| Json()             | JsonResult object             |
+- most of these methods have several overloads
+- some of the overloads of the View() method
+| Method            | Description                                                                                                                                                       |
+|-------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| View()            | renders the default view for that controller and action method                                                                                                    |
+| View(model)       | transfers a model object to the default view and renders that view                                                                                                |
+| View(name)        | renders the specified view; this method starts by searching for the specified view in the view folder for the current controller and then the Views/Shared folder |
+| View(name, model) | transfers a model object to the specified view and renders that view                                                                                               |
+- when Visual Studio generates action methods, it uses a return type of IActionResult
+  + if an action method might return different ActionResult subtypes, this approach works well
+  + if an actoin method is only going to return one type of ActionResult subtype, it's considered a good practice to use it as the return type
+- using a specific return type can both improve performance and make code more clear
+- a problem can arise when using a string as a model object; MVC might interpret the string as the name of a view file to look for and not as the model object
+  + to fix this, cast the string to the object type before passing it to the View() method
+* How to use the ViewData and ViewBag properties
+** How to use the ViewData property
+- the ViewData property of the Controller class has a data type of ViewDataDictionary
+  + this means that the property is a collection of key/value pairs with the key being a string and the value an object
+- some of the properties of the ViewDataDictionary class
+| Property | Description                                                             |
+|----------+-------------------------------------------------------------------------|
+| Count    | returns the number of key/value pairs in the dictionary                 |
+| Keys     | returns a collection of strings containing the keys in the dictionary   |
+| Values   | returns a collection of objects containing the values in the dictionary |
+- when you display a ViewData value in a view, Razor automatically calls the object's ToString() method
+- if you want to work with a ViewData value in code, you must cast the value to its data type
+  + check to ensure the value isn't null first
+    - the safe navigation operator, ~?~, can also be used
+** How to use the ViewBag property
+- the ViewBag porperty of the Controller class uses C#'s /dynamic type/
+  + you can add properties to the ViewBag, and .NET will determine the type of those properties at runtime
+- like the ViewData property, the ViewBag property is shared with the associated view, including its layout
+  + any data stored in teh ViewBag is available to the view and its layout
+- the ViewBag property stores its data in teh ViewData dictionary
+  + the ViewData property can be used to get values that were added to the ViewBag property
+  + the ViewBag is often thought of as an /alias/ for the ViewData dictionary
+- since it is dynamically typed, you don't need to explicitly cast property values to work with the data that they contain
+  + it's still a good idea to check for null values
+- in most scenarios, ViewBag is easier to use
+  + there are a few scenarios, however, where it makes more sense to use ViewData
+- use ViewData instead of ViewBag when you need to:
+  + use a key name that isn't valid in C#, such as a key that contains spaces
+  + call properties and methods of the ViewDataDictionary class, such as its count
+  + loop through all items in the ViewData dictionary
+- one disadvantage to both the ViewBag and ViewData properties is that Visual Studio doesn't provide compile-time checking or IntelliSense for these properties
+  + this is true for both the controller and the view
+  + because if this, some programmers avoid using either and use view models instead
+* How to work with view models
+** how to create a view model
+- a /view model/ is a regular C# class that holds all of the data that a specific view requires
+  + by convention, this kind of class ends with the suffix "ViewModel"
+- typically, view models are lightweight classes that contain only data
+  + they can also contain simple helper methods for the view
+* How to redirect a request
+** How to use the ActionResult classes for redirection
+- two of the HTTP status codes for redirection
+| Code                  | Description                                                                               |
+|-----------------------+-------------------------------------------------------------------------------------------|
+| 302 Found             | directs the browser to make a GET request to another URL                                  |
+| 301 Moved Permanently | directs the browser to make a GET request to another URL for this and all future requests |
+- The ActionResult subtypes for redirection
+| Subtype                | 302 Found method   | 301 Moved Permanently mothod |
+|------------------------+--------------------+------------------------------|
+| RedirectResult         | Redirect()         | RedirectPermanent()          |
+| LocalRedirectResult    | LocalRedirect()    | LocalRedirectPermanent()     |
+| RedirectToActionResult | RedirectToAction() | RedirectToActionPermanent()  |
+| RedirectToRouteResult  | RedirectToRoute()  | RedirectToRoutePermanent()   |
+- the 301 status code is typically used to support old URLs in an app
+- how to know which subtype to use for redirection
+| Subtype                | Use when...                                               |
+|------------------------+-----------------------------------------------------------|
+| RedirectResult         | redirecting to an external URL                            |
+| LocalRedirectResult    | making sure you reirect to a URL within the current app   |
+| RedirectToActionResult | redirecting to an action method within the current app    |
+| RedirectToRouteResult  | redirecting within the current app by using a named route |
+- to navigate within your app, it's common to use RedirectToActionResult because the methods that create it build the URL based on your app routes
+  + RedirectToRouteResult can be used to navigate based on route names, but this is less common and some developers consider it bad practice
+- LocalRedirectResult can be used to pass a URL that the user should return to later, such as to return to the URL after they log in
+  + this subtype makes sure that the return URL is part of your app and prevents /open redirection attacks/ that attempt to redirect to a malicious external site
+- most of the methods that return ActionResult objects have several overloads
+- some of the overloads available for the RedirectToAction() method
+| Arguments      | Redirect to...                                                                |
+|----------------+-------------------------------------------------------------------------------|
+| (a)            | the specified action method in the current controller                         |
+| (a, c)         | the specified action method in the specified controller                       |
+| (a, routes)    | the specified action method in the current controller with route parameters   |
+| (a, c, routes) | the specified action method in the specified controller with route parameters |
+** How to use the Post-Redirect-Get pattern
+- GET requests are designed to retrieve data but be /idempotent/, which means that they make no changes on the server
+  + this means a user can resubmit a GET request multiple time and it won't affect any data on the server
+- POST requests are designed to post, or write, data to the server
+  + typically, you don't want users to resubmit a POST request
+- to prevent resumbition of POST data, you can use the /Post-Redirect-Get (PRG) pattern/
+  + with this, a POST action writes data to the server, and then redirects to a GET action to read data from the server
+* How to use the TempData property
+** How to get started with TempData
+- the Controller class has a property named TempData that lets you transfer data to another controller or view
+  + it works much like the ViewData property
+- data in TempData persists across multiple requests until it is read
+  + data in ViewData and ViewBag only persists until the end of teh current request
+- TempData is often used with the PRG pattern because that that pattern takes place across two requests (the POST request and the subsequent GET request)
+- TempData can only be used to store data that can be serialized, such as primitive types
+- because TempData is a dictionary, it has normal dictionary properties like Keys and Values
+  + these have a Contains() method that can be used to check for values
+- by default, ASP.NET Core 3.0 and later automatically enables TempData when the AddControllers WithViews() method in the Configure() method of the Startup.cs is called
