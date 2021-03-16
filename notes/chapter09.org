@@ -1,0 +1,166 @@
+#+TITLE: Chapter 09 - How to work with session state and cookies
+
+* How ASP.NET MVC handles state
+- the data that a web app maintains for a user, such as variables, is the /state/ of that app
+  + HTTP is a /stateless/ protocol
+** Six ways to maintain state
+- common web programming features for maintaining state
+| Feature       | Description                                                                                                                                              |
+|---------------+----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| hidden field  | uses an <input> element to store data in a page that posts back to the server                                                                            |
+| query string  | uses the URL to store data and pass it between requests                                                                                                  |
+| cookie        | uses a cookie object to store data in the user's browser or on hard disk; then, the browser passes that data to the server with every subsequent request |
+| session state | uses a session state object to store data throughout the user's session                                                                                  |
+- two ASP.NET Core MVC features for maintaining state
+| Feature  | Description                                                |
+|----------+------------------------------------------------------------|
+| routes   | uses the URL to store data and pass it between requests    |
+| TempData | uses a session state object to store data until it is read |
+** An introduction to session state
+- a /cookie/ is a key/value pair that's created on the server and passed to the user's browser in an HTTP response
+  + the browser passes the cookie back to the server each subsequent HTTP request
+- when using /session state/, the data for a user session is stored in key/value pairs on the server
+  + this data persists across all the HTTP requests that a user makes until the app removes the data or the session ends
+- a session can end in one of two ways:
+  1. the user can end the session by closing the browser
+  2. when the browser is open but the app is inactive for a specified period of time
+- to make it possible for a session state to work, the server creates a session ID to identify the user's session
+  + then, it sends this session ID to the user's browser in a cookie
+  + with each subsequent request, the user's browser sends the cookie back to the server, which uses it to retrieve the session data associated with that user
+* How to work with session state
+- is extremely useful and commonly used by many types of web apps such as shopping cart apps
+** How to configure an app to use session state
+- by default, ASP.NET Core MVC doesn't enable sesion state
+  + you need to configure the middleware pipeline for the app so it includes all of the services needed for session state
+- to configure the middelware
+  + open the Startup.cs file and add statements to the ConfigureServices() and Configure() methods
+- to change the default settings for session state, you can use a lambda expression to pass a SessionOptions object to the AddSession() method
+- setting the IsEssential property to true will indicate that the session cookie is required for the app to functoin properly
+  + this allows session state to work even if your web app requires users to consent to you cookie policy before the app can use non-essential cookies (as specified by the GDPR developed by the EU)
+** How to work with session state items in a controller
+- methods of the ISession interface that set, get, and remove items
+| Method                | Description                                                                             |
+|-----------------------+-----------------------------------------------------------------------------------------|
+| SetInt32(key, value)  | stores the int value in the sesion object and ssociates it with the specified key       |
+| SetString(key, value) | stores the string value in the session object and associates it with the specified key  |
+| GetInt32(key)         | returns the int value associated with the specified key, or null if there's no value    |
+| GetString(key)        | returns the string value associated with the specified key, or null if there's no value |
+| Remove(key)           | removes the value associated with the specified key if the key is found                 |
+- the HttpContext class has a property named Session that implements ISession and thus provides methods for setting, getting, and removing items in session state
+- to enable all function of the Session property, you must import the the Microsoft.AspNetCore.Http namespace
+  + ~using Microsoft.AspNetCore.Http;~
+- a controller has an HttpContext property that has a data type of HttpContext
+** How to get session state values in a view
+- a view has a Context property that has a data type of HttpContext
+- in ASP.NET Core MVC, session stat can only store int and string values
+  + you can extend session state so it can store more complex types
+** How to use JSON to store objects in session state
+- /JSON (JavaScript Object Notation)/ is a data format that facilitates the transfer of data
+- to /serialize/ .NET objects to JSON, strings and back again, you can use the open-source Newtonsoft Json.NET library
+- How to add the Newtonsoft JSON NuGet package to your app
+  1. use the Tools->NuGet Package Manager->Manage NuGet Packages for Solution command to open the NuGet Package Manager
+  2. click the Browse Button
+  3. type "Microsoft.AspNetCore.MVC.NewtonsoftJson" in the search box
+  4. click on the appropriate package from the list that appears on the left-hand panel
+  5. in teh right-hand panel, check the project name, select the version that matches the version of .NET Core you're running, and click Install
+  6. review the Preview Changes dialog that comes up and click OK
+  7. review the License Acceptance dialog that comes up and click I Accept
+- you can use the JsonIgnore attribute of the Newtonsoft.Json namepsace to mark properties in an object that you don't want to serialize
+- a using directive that imports the Newtonsoft JSON library: ~using Newtonsoft.Json;~
+- two static methods of the JsonConvert class
+| Method                       | Description                                   |
+|------------------------------+-----------------------------------------------|
+| SerializeObject(object)      | converts an object to a JSON string           |
+| DeserializeObject<T>(string) | converts a JSON string to an object of type T |
+** How to extend the ISession interface
+- two extension methods for the ISession interface
+#+begin_src csharp
+using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json;
+...
+public static class SessionExtensions
+{
+    public static void SetObject<T>(this ISession session, string key, T value)
+    {
+        session.SetString(key, JsonConvert.SerializeObject(value));
+    }
+
+    public static T GetObject<T>(this ISession session, string key)
+    {
+        var valueJson = session.GetString(key);
+        if(string.IsNullOrEmpty(value)) {
+            return default(T);
+        }
+        else {
+            return JsonConvert.DeserializeObject<T>(valueJson);
+        }
+    }
+}
+#+end_src
+- to make it easier to store objects in session state, you can add extension methods to the ISession interface
+- when working with the SetObject<T>() method, the compiler can infer the object type based on the type of the second argument
+  + this cannot be done with the GetObject<T>() method because it always receives a string argument
+** How to use a wrapper class
+- a /wrapper class/ is any class that "wraps up" or encapsulates the functionality of another class or component
+- a wrapper class that encapsulates the code for working with session state
+#+begin_src csharp
+using Microsoft.AspNetCore.Http;
+...
+public class MySession
+{
+    private const string TeamsKey = "teams";
+
+    private ISession sesion { get; set; }
+    public MySession(ISession sess) {
+        session = sess;
+    }
+
+    public List<Team> GetTeams() =>
+        session.GetObject<List<Team>>(TeamsKey) ?? new List<Team>();
+
+    public void SetTeams(List<Team> teams) =>
+        session.SetObject(TeamsKey, teams);
+}
+#+end_src
+- a wrapper class can call extension methods from the ISession interface like the ones shown in the previous figure
+- code that uses the wrapper class to work with a list of teams
+  + in a controller
+    #+begin_src csharp
+    var session = new MySession(HttpContext.Session);
+    var teams = session.GetTeams();
+    teams.Add(new Team { TeamID = "gb", Name = "Green Bay Packers" });
+    session.SetTeams(teams);
+    #+end_src
+  + in a view
+    #+begin_src csharp
+    @{
+        var session = new MySession(Context.Session);
+        var teams = session.GetTeams();
+    }
+    #+end_src
+* How to work with cookies
+- a /cookie is a key/value pair that's stored in the user's browser or on the user's disk
+  + a web app sends a cookie to a browser via an HTTP response
+- a /session cookie/ is stored in the browser's memory and exists only for the duration of the browser session
+- a /persistent cookie/ is stored on the user's disk and is retained until the cookie's expiration date, or until the user clears the cookie
+** How to work with session cookies
+- two properties of the Controller class
+| Property | Description                                                      |
+|----------+------------------------------------------------------------------|
+| Request  | represents the HTTP request sent from the browser to the server  |
+| Response | represents the HTTP response sent from the server to the browser |
+- the Request property is used to retrieve, or get, a cookie
+  + to do this, it uses brackets to specify the key, not parentheses
+** How to work with persistent cookies
+- some of the properties of the CookieOptions class
+| Property | Description                                                                                                 |
+|----------+-------------------------------------------------------------------------------------------------------------|
+| Domain   | the domain to associate the cookie with; the default value is null                                          |
+| Expires  | the cookie's expiration date and time; the default value is null                                            |
+| Path     | the cookie's path; the default path is "/"                                                                  |
+| MaxAge   | the maximum age for the cookie; the default value is null                                                   |
+| SameSite | teh value for the cookie's SameSite attribute; the values can be Lax or Strict and the default value is Lax |
+| Secure   | indicates whether the cookie can be trasmitted over HTTPS only; the default value is false                  |
+- to set or delete a cookie, use the Cookies property of the controller's Response property
+- to get a cookie, use the Cookies property of the controller's Request property
+- to set a persistent cookie, use a CookieOptions object that expires in the future
