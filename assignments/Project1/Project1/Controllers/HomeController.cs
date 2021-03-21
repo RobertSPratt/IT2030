@@ -17,6 +17,7 @@ namespace Project1.Controllers
         {
             var session = new TripSession(HttpContext.Session);
             session.ClearTrip();
+            TempData.Clear();
             var trips = context.Trips.
                 OrderBy(t => t.StartDate).ToList();
             return View(trips);
