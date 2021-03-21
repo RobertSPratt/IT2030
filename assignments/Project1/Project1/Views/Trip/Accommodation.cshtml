@@ -3,21 +3,29 @@
 @{ 
     string title = ViewBag.Action;
     ViewBag.Title = title;
+
+    var session = new TripSession(Context.Session);
+    var trip = session.GetTrip();
 }
 
 <h2>@title</h2>
 
-<form asp-action="Accommodate" method="post">
+<form asp-action="Accommodation" method="post">
     <div asp-validation-summary="All" class="text-danger"></div>
 
+    <input type="hidden" asp-for=@trip.Destination />
+    <input type="hidden" asp-for=@trip.StartDate />
+    <input type="hidden" asp-for=@trip.EndDate />
+    <input type="hidden" asp-for=@trip.Accommodation />
+
     <div class="form-group">
-        <label asp-for="AccommodationPhone">Phone Number</label>
-        <input asp-for="AccommodationPhone" placeholder="123-555-1234" class="form-control" />
+        <label asp-for=@trip.AccommodationPhone>Phone Number</label>
+        <input asp-for=@trip.AccommodationPhone placeholder="123-555-1234" class="form-control" />
     </div>
 
     <div class="form-group">
-        <label asp-for="AccommodationEmail">Email</label>
-        <input asp-for="AccommodationEmail" placeholder="example@example.com" class="form-control" />
+        <label asp-for=@trip.AccommodationEmail>Email</label>
+        <input asp-for=@trip.AccommodationEmail placeholder="example@example.com" class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Next</button>

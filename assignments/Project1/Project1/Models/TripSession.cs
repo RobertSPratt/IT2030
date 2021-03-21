@@ -22,23 +22,9 @@ namespace Project1.Models
 
         public Trip GetTrip() => session.GetObject<Trip>(TripKey);
 
-        public void SetMessage(string message)
-        {
-            session.SetString(MessageKey, message);
-        }
-
-        public void GetMessage() => session.GetString(MessageKey);
-
         public void ClearTrip()
         {
             session.Clear();
-        }
-
-        public void ClearTrip(Trip trip)
-        {
-            var message = "Trip to " + trip.Destination + " added.";
-            session.Clear();
-            SetMessage(message);
         }
     }
 }

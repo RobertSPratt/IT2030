@@ -3,6 +3,9 @@
 @{ 
     string title = ViewBag.Action;
     ViewBag.Title = title;
+
+    var session = new TripSession(Context.Session);
+    var trip = session.GetTrip();
 }
 
 <h2>@title</h2>
@@ -10,16 +13,23 @@
 <form asp-action="ThingsToDo" method="post">
     <div asp-validation-summary="All" class="text-danger"></div>
 
+    <input type="hidden" asp-for=@trip.Destination/>
+    <input type="hidden" asp-for=@trip.StartDate />
+    <input type="hidden" asp-for=@trip.EndDate />
+    <input type="hidden" asp-for=@trip.Accommodation />
+    <input type="hidden" asp-for=@trip.AccommodationPhone />
+    <input type="hidden" asp-for=@trip.AccommodationEmail />
+
     <div>
-        <input asp-for="ThingToDo1" class="form-control"/>
+        <input asp-for=@trip.ThingToDo1 class="form-control"/>
     </div>
 
     <div>
-        <input asp-for="ThingToDo2" class="form-control" />
+        <input asp-for=@trip.ThingToDo2 class="form-control" />
     </div>
 
     <div>
-        <input asp-for="ThingToDo3" class="form-control" />
+        <input asp-for=@trip.ThingToDo3 class="form-control" />
     </div>
 
     <button type="submit" class="btn btn-primary">Save</button>

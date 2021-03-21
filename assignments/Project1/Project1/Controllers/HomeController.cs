@@ -15,6 +15,8 @@ namespace Project1.Controllers
 
         public IActionResult Index()
         {
+            var session = new TripSession(HttpContext.Session);
+            session.ClearTrip();
             var trips = context.Trips.
                 OrderBy(t => t.StartDate).ToList();
             return View(trips);

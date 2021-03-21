@@ -46,7 +46,7 @@ namespace Project1.Controllers
         public IActionResult Accommodation(Trip trip)
         {
             var session = new TripSession(HttpContext.Session);
-            session.ClearTrip();
+            //session.ClearTrip();
             session.SetTrip(trip);
 
             return RedirectToAction("ThingsToDo", "Trip");
@@ -67,8 +67,9 @@ namespace Project1.Controllers
         {
             var session = new TripSession(HttpContext.Session);
             context.Trips.Add(trip);
+            TempData["message"] = "Trip to " + trip.Destination + " added.";
             context.SaveChanges();
-            session.ClearTrip(trip);
+            session.ClearTrip();
 
             return RedirectToAction("Index", "Home");
         }

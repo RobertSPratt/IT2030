@@ -3,6 +3,7 @@
 @{ 
     ViewBag.Title = "My Trip Log";
 } 
+
 @if (TempData.Peek("message") != null)
 {
     <h2 class="jumbotron">@TempData["message"]</h2>
@@ -24,6 +25,7 @@
                 <tr>
                     <td>@trip.Destination</td>
                     <td>@trip.StartDate.ToString("MM/dd/yyyy")</td>
+                    <td>@trip.EndDate.ToString("MM/dd/yyyy")</td>
                     @if(trip.Accommodation != null)
                     {
                         <td>
