@@ -67,9 +67,8 @@ namespace Project1.Controllers
         {
             var session = new TripSession(HttpContext.Session);
             context.Trips.Add(trip);
-            TempData["message"] = "Trip to " + trip.Destination + " added.";
             context.SaveChanges();
-            session.ClearTrip();
+            TempData["message"] = "Trip to " + trip.Destination + " added.";
 
             return RedirectToAction("Index", "Home");
         }
