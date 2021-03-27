@@ -1,0 +1,83 @@
+#+TITLE: Chapter 10 - How to work with model binding
+* An introduction to MVC model binding
+** How to use controller properties to retrieve GET and POST data
+- two properties of the Controller class
+| Property  | Description                                                     |
+|-----------+-----------------------------------------------------------------|
+| Request   | represents the HTTP request sent from the browser to the server |
+| RouteData | represents the MVC route for the current request                |
+- two properties of the Request property
+| Property | Description                                                           |
+|----------+-----------------------------------------------------------------------|
+| Query    | a dictionary that holds the query string parameters in the URL        |
+| Form     | a dictionary that holds the form values in the body of a POST request |
+- one property of the RouteData property
+| Property | Description                                                                                                                                 |
+|----------+---------------------------------------------------------------------------------------------------------------------------------------------|
+| Values   | a dictionary that holds the route data for the current request, including the current controller, action method, and named route parameters |
+- an HTTP request can pass data from the browser to the server in the query string of the URL or in the body of a POST request
+- MVC can pass data from the browser to the server in the route segments of the URL
+- the Controller class provides several properties that allow you to access this data
+** How to use model binding to retrieve GET and POST data
+- there are many drawbacks to accessing form, route, and query string data directly
+  + first, the references to the Request and the RouteData properties can get repetitive
+  + second, you have to manually type case-sensitive key names that aren't checked by IntelliSense or the compiler and that must match the parameter and route names
+    - as a result, they are prone to typos that won't be discovered until runtime
+  + third, the values from the form, route, or query string are strings
+    - as a result, you must cast them to the type that's needed by the cation method
+  + fourth, you need to know where you're getting your values from, and you need to change your code whenever that changes
+- MVC /model binding/ fixes these problems
+  + it works by automatically mapping named request parameters to the names of an action method's parameters
+  + in addition, you don't need to specify whether the data is in the form, route, or query string because it checks for the three types of data that can be passed to an action method
+  + it is case insensitive
+  + if it doesn't find a name that matches the parameter name, it sets the value of the action method parameter to the default value for its type
+  + it automatically casts a value to the type of the action method value parameter
+    - if the value can't be cast, it does not throw an exception but adds an error message to the ModelStateDictionary property of the Controller class
+** How to use model binding with complex types
+- an action method can also accept a complex type
+- you can use the asp-for tag to set the name attribute of an HTML element
+- MVC auto initializes an action method parameter that's a complex type
+  + to do that, it looks for values with the same names as the porperty names of the parameter
+* More skills for binding data
+** Two ways to code a submit button
+- the <input> element
+  + allows you to use the asp-for tag helper to generate the name and value attributes
+  + automatically displays the value attribute as the text for the button
+- the <button> element
+  + gives you control over the text (or image) that's displayed on the button
+  + requires you to manually code the name and value attributes
+  + reqiures you to make sure the value in the name attribute matches the name of the action method parameter or property
+- you can use the name and value attributes of a submit button to POST data
+** How to post an array to an action method
+- you can pass an array to an action method by coding multiple HTML elements that have the same name within a form
+- the name of the HTML elements needs to match the name of an action method parameter or property
+- the action method parameter or property needs to be of the IEnumerable type, such as an array or List<T> type
+** How to control the source of bound values
+- some of the attributes that specify the source of the value to be bound
+| Attribute      | Tells MVC to retrieve the value...                     |
+|----------------+--------------------------------------------------------|
+| [FromForm]     | from the form parameters in the body of a POST request |
+| [FromRoute]    | from the route parameters of the URL                   |
+| [FromQuery]    | from the qurey string parameters of the URL            |
+| [FromHeader]   | from the HTTP request header                           |
+| [FromServices] | from services that are injoect into the app            |
+| [FromBody]     | from the body of the HHTP request; this is often used when a client-side script sends JSON data to an action method and this attribute can only decorate one action parameter per action method |
+- you can use attributes to control how binding works
+- you can apply attributes to parameters of action methods in a controller or to properties of model classes
+- you can pass arguments to an attribute to further refine its behavior
+- if you specify a From attribute, MVC only looks for the specified value from that source and doesn't check other sources
+** How to control which values are bound
+- two attributes that determine which values are bound
+| Attribute     | Description                                                                                                                                                         |
+|---------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| [Bind(names)] | allows you to list the names of the properties that can be set during model binding; this attribute can be applies to a model or to a parameter of an action method |
+| [BindNever]   | indicates that a property should never be set during model binding; this attribute can only be applied to model properties                                          |
+- the namespaces of the two attributes
+| Attribute   | Namespace                             |
+|-------------+---------------------------------------|
+| [Bind]      | Microsoft.AspNetCore.MVC              |
+| [BindNever] | Microsoft.AspNetCore.MVC.ModelBinding |
+- these attributes only prevent MVC model binding from setting the value of a property
+  + you can still write code that manually sets the property, even if you use attributes to tell MVC not to automatically bind a value to that property
+- controlling which properties are set during model binding protects against /mass assignment attacks/, also called /over posting attacks/
+  + in this kind of attack, a malicious user manipulates the data sent to the server to set properties that the app isn't expecting
