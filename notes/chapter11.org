@@ -1,0 +1,145 @@
+#+TITLE: Chapter 11 - How to validate data
+* How data validation works in MVC
+** The default data validation provided by model binding
+- when using model binding and MVC can't cast an HTTP request value to the data type specified by the action method parameter, it adds an error message to the ModelState property of the Controller class
+** How to use data attributes for validation
+- common data attributes for validation
+| Attribute             | Description                                                                                                                  |
+|-----------------------+------------------------------------------------------------------------------------------------------------------------------|
+| Required              | makles sure the property value is not an empty string or blank spaces; numeric data types must be nullable                   |
+| Range(min, max)       | makes sure the property value is within the specified range of values; the property must implement the IComparable interface |
+| Range(type, min, max) | makes sure a value of a type other than int or double is within a range of values; the min and max arguments must be strings |
+| StringLength(length)  | makes sure the string property value doesn't exceed a specific length                                                        |
+| RegularExpression(ex) | makes sure a property value matchs a regex pattern                                                                           |
+| Compare(other)        | makes sure the property has the same value as another property                                                               |
+| Display(Name = "n")   | specifies how the field name shoould be displayed to the user                                                                |
+** A registration page with data validation
+- when performing validation, MVC emits HTML that has CSS classes that you can style to control the appearance of the validation
+** How to check validation state and use code to set validation messages
+- the ModelState property of the Controller class has a data type of ModelStateDictionary
+  + this dictionary stores the data that a form posts to the controller
+  + it stores this data as key/value pairs
+  + it also stores any validation messages produced during model binding
+- some of the properties of the ModelStateDictionary class
+| Property   | Description                                                                                |
+|------------+--------------------------------------------------------------------------------------------|
+| Count      | the number of key/value pairs sent to the server and stored in the dictionary              |
+| ErrorCount | the number of validation messages stored in the dictionary                                 |
+| IsValid    | a boolean value indicating whether any of the key/value pairs are invalid or not validated |
+| Keys       | a collection of the keys of the form data parameters                                       |
+| Values     | a collection of the values of the form data parameters                                     |
+- two of the methods of the ModelStateDictionary class
+| Method                  | Description                                                                                                                                                                                                                                   |
+|-------------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AddModelError(key, msg) | adds a validation message to the dictionary and associates it with the property that matches the specific key; to associate a validation message with the overall model, rather than a specific property, specify an empty string as the keys |
+| GetValidationState(key) | gets the ModelValidationState enum value for the specified property name; possible values are Valid, Invalid, Unvalidated, and Skipped                                                                                                        |
+- the ModelValidationState enum is in the Microsoft.AspNetCore.Mvc.ModelBinding namespace
+** How to display model-level and property-level validation messages
+- two tag helpers used with data validation
+| Tag Helper             | Description                                                                                                                                                               |
+|------------------------+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| asp-validation-summary | displays the validation messages in the ModelState property; accepts a value of the ValidateSummary enum to determine which messages to display and targets the <div> tag |
+| asp-validation-for     | displays the first validation message in the ModelState property for the specified property and targets the <span> tag                                                    |
+- the values of the ValidateSummary enum
+| Value     | Description                                                                                                                                                                              |      |
+|-----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+------|
+| All       | displays all the validation messages in the ModelState property                                                                                                                          |      |
+| ModelOnly | displays only those messages in the ModelState property that are associated with the model; in other words, only those messages whose key is an empty string rather than a property name | None |
+| displays no messages |                                                                                                                                                                                          |      |
+** How to enable client-side validation
+- it is general considered good practice to validate data on the client before sending it to the server
+  + this can improve the responsiveness of your app significantly since it doesn't require an unnecessary round trip to the server
+- to enable client-side validation, add the jQuery, jQuery validation, and jQuery unobtrusive validation libraries to your app in that order
+- there are some caveats to using client-side validation in your MVC app
+  1. client-side validation only works correctly with property-level validation, not with model-level validation
+     a. this is because the ModelState dictionary doesn't contain any model-level validation messages since there are no round trips to the server
+  2. if there's custom validation on the server, validation can run twice
+     a. after the client-side validation passes, the forms post to the server, and the server-side validation runs
+     b. whenever possible, it's best to let your users know in one step everything they need to do to fix their data entry
+  3. not all of the MVC data attributes work propertly with the JQuery validation libraries
+     a. in particular, the Range attribute doesn't work well with dates
+- when working with validation, keep in mind that client-side validation /is not/ a substitute for server-side validation
+  + a user's browser might have JavaScript turned off, or a malicious user might tamper with the JavaScript
+  + you should always validate user input on the server as well
+* How to customize server-side validation
+** How to create a custom data atrribute
+- three classes used to create a custom data attribute
+| Class               | Description                                          |
+|---------------------+------------------------------------------------------|
+| ValidationAttribute | the base class for a custom data attribute           |
+| ValidationContext   | describes the context for the validation             |
+| ValidationResult    | contains data that represents the validation results |
+- a virtual method of the ValidationAttribute class
+| Virtual method           | Description |
+|--------------------------+-------------|
+| IsValid(object, context) | checks whether a value is valid; accepts the value to check and a ValidationContext object, returning a ValidationResult object |
+- a constructor and a field of the ValidationResult class
+| Constructor              | Description                                   |
+|--------------------------+-----------------------------------------------|
+| ValidationResult(string) | creates an object with the validation message |
+|--------------------------+-----------------------------------------------|
+| Static Field             | Description                                   |
+|--------------------------+-----------------------------------------------|
+| Success                  | indicates that validation was successful      |
+- to create a custom data attribute, code a class that inherits the ValidationAtttribute class and overrides its IsValid() method
+** How to pass values to a custom data attribute
+- use the constructor and named properties to accept data for a data attribute
+- when using an attribute, the values must be coded for the constructor parameters first, followed by the values for the properties
+** How to check multiple properties
+- it's possible to create a data attribute that checks more than one property in the model object
+  + to do that, the code in the IsValid() method uses the ObjectInstance property of the ValidationContext class to return the object that contains the properties being checked; it is returned as the object type, so it must be cast to the correct type
+- because this custom data attribucte only works with one class, it may be hard to reuse
+  + as a result, it can sometimes make more sense to validate the class rather than create several data attributes that you mot not be able to use anywhere else
+  + this is called /class-level validation/
+- the single method of the IValidateObject interface
+| Method            | Description                                                                                                                  |
+|-------------------+------------------------------------------------------------------------------------------------------------------------------|
+| Validate(context) | checks whether an object is valid; accepts a ValidationContext object and returns an IEnumerable of ValidationResult objects |
+- to code a class that can validate itself, you need to implement the IValidateObject and its Validate() method
+  + MVC calls the VAlidate() method during model binding
+- a constructor of the ValidationResult class
+| Constructor               | Description |
+|---------------------------+-------------|
+| ValidationResult(m, list) | creates an object with the validation message and list of properties |
+- when using class-level validation, regular data attributes can also be used to perform property-level validation
+  + class-level validation only runs if all the property-level validation has passed, creating a 2-step validation process that users might not like
+- one way to address the 2-step validation issue is to only use class-level validation
+  + to do this, avoid data attributes and manually code all validation in the VAlidate() method
+  + it is not as convenient and can result in unweildy code
+  + whether you code a class that validates itself or indiviadual data attributes that are specific to that class depends on your needs and preferences
+* How to customize client-side validation
+** How to add data attributes to the generated HTML
+- when you craete a custom data attribute, it's a good practice to enable it to perform validation on the client, too
+  + that way, the attribute can participate in client-side validation
+- to add client-side validation, start by updating your data attribute class to emit the data-val-* attributes that jQuery validation libraries use
+  + then, add jQuery code to do the actual validation
+- to specify the HTML that MVC emits for the tag that's being validated, a data attribute must implement the ICientModelValidator interface and its AddValidation() method
+  + a method of the IClientModelValidator interface
+    | Method                 | Description                                     |
+    |------------------------+-------------------------------------------------|
+    | AddValidation(context) | adds data-val* attributes to the generated HTML |
+** How to add a validation method to the jQuery validation library
+- to implement client-side validation, you need to use the addMethod() function to add a JavaScript function that performs the validation to the jQuery validation library
+- to map a JavaScript validation functions to its HTML5 data-val-* attributes, you need to use a JavaScript function to add the validation function to the adapters collection of the jQurey unobtrusive validation library
+- to map a JavaScript validation function that accepts one argument, you can use the addSingleVal() function
+  + for validation functions that accept zero arguments, you can use the addBool() function
+  + for validation functions that accept multiple arguments, you can user the add() function
+** How to work with remote validation
+- /remote validation/ allows you to write code on the server that's called by the client without reloading the whole page
+  + to enable remote validation, you can use the Remote attribute
+- two constructors of the RemoteAttribute class
+| Constructor                   | Description                                                                   |
+|-------------------------------+-------------------------------------------------------------------------------|
+| RemoteAttribute (act, ctl)    | identifies the action method and the controller to be called by the client    |
+| RemoteAttribute(act,ctl,area) | identifies the action method, controller, and area to be called by the client |
+- when you code the action method for the Remote attribute, it must hav a return type of JsonResult by calling Json() and it must accept a parameter with the same name as the parameter that the Remote attribute decorates
+  + usually, it's best to code this parameted as a string and then convert it to another type insid the method, if necessary
+- one property of the RemoteAttribuce class
+| Property         | Description |
+|------------------+-------------|
+| AdditionalFields | a comma-separated list of any additional values to be sent to the specified action method |
+- the AdditionalFields property of the Remote attribute lets you identify other HTTP values the action method should retrieve from the POST request
+- there are two important things to understand about remote validation
+  1. it doesn't run if the field is left blank, so you may want to code a Required attribute before your remote attribute
+  2. even though the code for the Remote attribute is on the server, it's only called by the client
+     a. as a result, if a user has JavaScript disabled in their browser, the remote validation doesn't run
