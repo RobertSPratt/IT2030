@@ -1,0 +1,251 @@
+#+TITLE: Chapter 12 - How to use EF Core
+* How to create a database from code
+- /Entity Framework (EF) Core/ is an /pbject-relational mapping (ORM)/ framework that allows you to map your entity classes to the tables of a database
+- the most common way to work with EF Core is to code your entity classes and a database context class first
+  + then, you can use EF to create a new database from these classes
+  + this is called /Code First/ development
+- to work with EF Core, you need to configure the database context
+  + to do that, you can modify your ~appsettings.json~ and ~Startup.cs~ files
+** How to code entity and DB context classes
+- /entity classes/ represent the data structure for an app
+- after creating entity classes, you need to code a /database (DB) context class/ that can communicate with a database
+  + this class inhertis the ~DbContext~ base class
+- to enable your context class to work with collections of your entity classes, you need to add ~DbSet<Entity>~
+  + when you create a database, these properties generate its tables
+  + LINQ can be used to query these properties
+- the ~DbContext~ class has two virtual methods named ~OnConfiguring()~ and ~OnModelCreating()~
+  + you can ovverride these methods to configure your context class and its DbSet properties
+- the ~OnConfiguring()~ method configures the context itself
+- the ~OnModelCreating()~ method configures your entity classes
+  + this configures the database tables that are created from these entities
+** How to configure the database
+- you can configure your entity classes so they create the database tables you want in three ways:
+  1. by convention
+  2. with data atrributes
+  3. by using code
+- when you configure by convention, you code your classes following established conventions and EF takes it from there
+- some of the conventions for configuration in EF Core
+  + a property names ID or ClassNameId is the primary key
+    - if the property is of the int type, the key is an identity column and its value is generated automatically by the database
+  + a string propertay has a database type of ~nvarchar(max)~ and is nullable
+  + an int or double property is not nullable
+- EF conventions may not always yield the wesults you want
+  + in these cases, you can use attributes that are stored in the ~DataAnotations~ and ~DataAnotations.Schema~ namespaces
+- some of the data attributes for configuration
+| Attribute                                                              | Description                               |
+|------------------------------------------------------------------------+-------------------------------------------|
+| Key                                                                    | the database column that's the primay key |
+|                                                                        | NotMapped                                 |
+| indicates that a proprety or table shouldn't be mapped to the database |                                           |
+| DatabaseGenerated                                                      | specifies how the database generatse the value; uses the Computed, Identity, and None values of the DatabaseGeneratedOption neum |
+- if you have complex requirements or want to keep configuration information out of your entity classes, you can use the methods of the /Fluent API/ to write code that configures your classes
+  + Flent API methods are chained together in the ~OnModelCreating()~ method
+- some of the Fluent API methods for configuration
+| Method              | Description                                                         |
+|---------------------+---------------------------------------------------------------------|
+| Entity<T>()         | registers an entity for configuration                               |
+| Property(lambda)    | registers a property for configuration                              |
+| HasKey(lambda)      | configures the primary key or keys for the entity                   |
+| HasData(entityList) | allows you to seed data for the entity when the database is created |
+| ToTable(string)     | identifies the table that an entity maps to                         |
+| IsRequired()        | configures a database column to be not nullable                     |
+| HasMaxLength(size)  | configures the size of a database column                            |
+** How to manage configuration files
+- if you have a lot of Fluent API configuration code in the ~OnModelCreating()~ method of your context class, it can become difficult to understand and maintain
+  + in that case, it's consereder a best practice to divide this code into one configuration file per entity
+- to create a configruation file, you code a class that implements the ~IEntityTypeConfiguration<T>~ interface and its ~Configure()~ method
+  + the ~Configure()~ method accepts an ~EntityTypeBuilder<T>~ object that represents the entity being configured
+- to apply the configuration code, you pass a new instance of the configuration class to the ~ApplyConfiguration()~ method of the ~ModelBuilder~ object that's passed to the ~OnModelCreating()~ method of the context class
+** EF commands for working with a database
+- the Package Manager Console (PMC) executes PowerShell commands to cerate, apply, and revert migration files
+- a migration file contains C# code for creating or updating database objects
+  + specifically, each migration file has an ~Up()~ method with code that runs when a migration is applied, and a ~Down()~ method with code that runs when a migration is reverted
+- the first time you run the ~Add-Migration~ command, EF creates a file named ~[DbContextName]ModelSnapshot.cs~
+  + this file contains a "snapshot" of the current database schema that is updated when you add or remove subsequent migrations
+- some of the PowerShell EF commands
+| Command           | Description                                                                                                                                            |
+|-------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Add-Migration     | adds a named migration file to the Migrations folder; if this folder doesn't exist yet, it creates the folder                                          |
+| Remove-Migration  | removes the last migration file from the Migrations folder; only works with migrations that have not yet been applied with the Update-Database command |
+| Update-Database   | updates the database to the last migration or reverts the database to the magriation specified by the optional -Name parameter                         |
+| Drop-Database     | deletes the database                                                                                                                                   |
+| Script-Migration  | generates a SQL script based on the migration file or files                                                                                            |
+| Caffold-DbContext | generates DB context and entity classes from an existing database                                                                                      |
+- parameters for the Add-Migration command
+| Parameter  | Description                                                            |
+|------------+------------------------------------------------------------------------|
+| -Name      | the name of the migration file; this is a required parameter           |
+| -OutputDir | the folder where the file will be created; the default is "Migrations" |
+- parameter for the Update-Database command
+| Parameter | Description                                                       |
+|-----------+-------------------------------------------------------------------|
+| -Name     | the name of the migration file; the default is the last migration |
+- parameters for the Script-Migration command
+| Parameter   | Description                                                               |
+|-------------+---------------------------------------------------------------------------|
+| -From       | the string migration file; the default is the first one                   |
+| -To         | the ending migration file; the default is the last one                    |
+| -Output     | the file to write to; defaults to a generated name in the solution folder |
+| -Idempotent | generates checks to make sure SQL commands aren't repeated                |
+** How to use EF migration commands
+- ~PM> Update-Database 0~ reverts all changes that have been applied to the database by running the ~Down()~ method in all the migration files
+- to remove all migration files from the Migrations folder, enter the ~Remove-Migration~ command repeatedly or manually delete all migration files from the Migration folder, including the snapshot file
+* How to work with relationships
+** How entities are related
+- relationships are defined with a primary key and a foreign key
+  + the /primary key (PK)/ uniquely identifies an entity
+  + the /foreign key (FK)/ relates rows in another table to the primary key
+- relationships in EF Core can be configured by convention, with data attributes, or by using the Fluent API
+- three types of relationships between entities
+  + one to many
+  + one to one
+  + many to mnay
+- two attributes that can be used to configure relationships
+| Attribute       | Description                                                          |
+|-----------------+----------------------------------------------------------------------|
+| ForeignKey      | specifies the property that's the foreign key in a relationship      |
+| InverseProperty | specifies the navigation property on the other end of a relationship |
+- the Has/With configuration pattern in the Fluent API
+  + /Has/ represents the side of the relationship where the configuration starts
+  + /With/ represents the side of the relationship where the configuration ends
+- Fluent API methods used to configure relationships in EF Core
+| Method              | Description                                                              |
+|---------------------+--------------------------------------------------------------------------|
+| HasOne(lambda)      | configures the /one/ side of a one-to-many or one-to-one relationship    |
+| WithOne(lambda)     | configures the /one/ side of a one-to-many or one-to-one relationship    |
+| HasMany(lambda)     | configures the /many/ side of a one-to-many or many-to-one relationship  |
+| WithMany(lambda)    | configures the /many/ side of a one-to-many or many-to-one relationship  |
+| HasForeignKey<T>(l) | specifies which property is the foreign key in a relationship            |
+| OnDelete(behavior)  | specifies how the database deals with related rows when a row is deleted |
+** How to configure a one-to-many relationship
+- the simplest way is to nest an entity as a property of another
+  + the disadvantages include needing to include all of the entity's data even if you only need its ID value, and issues if the nested entity has validation requirements
+- it's typically a better practice to fully define the relationship by explicitly coding the foreign key property
+  + the parent entity includes a foreign key property of the nested entity's ID and the nested entity
+  + the nested entity is a /navigation property/, which is a way to navigate to the values of the related entity from the primary entity
+- when you fully define a relationship, it's a good practice to include a navigation property at each end of the relationship
+- most of the time, you only use the Flent API to configure a one-to-many relationship if you also need to provide configuration that can't be provided by convention or with data attributes
+** How to configure a one-to-one relationship
+- if an entity has a one-to-one relationship with another entity, the data in the two entities could be stored in one entity
+  + the data in the two underlying database tables could be stored in one table
+- this is useful when you need to store large objects such as images, shound, and videos
+  + a one-to-one relationship can also be useful when an entity has both essential data and data that is frequently null
+- most one-to-one relationships can be configured by convention
+  + if your naming doesn't follow conventions, you can use data attributes
+- typically, you only need to use the Fluent API if you also need to perform other tasks in addition to configuring the relationship
+- /table splitting/ allows you to use two entities to represent the data that's stored in a single table
+  + this can be useful when the table in a database contains a lot of columns, but you don't always want to retrieve all those columns
+** How to configure a many-to-many relationship
+- a many-to-many relationship is configured by using an intermediate entity called a /join entity/ or a /linking entity/
+  + this creates an intermidiate table in the database called a /join table/ or a /linking table/
+- the linking entity has a one-to-many relationship with the two entities in the many-to-many relationship
+  + a many-to-many relationship is broken down into two one-to-many relationships
+- they can only be configured with the Fluent API
+- the linking entity has a /composite primary key/ that consists of the primary key of each linked entity
+** How to control delete behavior
+- most databases allow you to configure /cascading deletes/, which cause dependent rows to be automatically deleted
+  + you can use the ~OnDelete()~ method of the Fluent API to configure how dependent rows are handled when a parent row is deleted
+- the values of the DeleteBehavior enum
+| Value    | Description                                                                                                                                                      |
+|----------+------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Cascade  | deletes dependent rows automatically; this is EF Core's default behavior for foreign keys that are not nullable                                                  |
+| SetNull  | sets the value of the foreign key in the dependent row to null; this is only possible when the foreign key is nullable, else it causes an exception to be thrown |
+| Restrict | prevents deletion of dependent rows; if a property remains in this state when SaveChanges() is called, thsi causes an exception to be thrown and is EF Core's default behavior for nullable FKs |
+* How to create code from a database
+- /Database First/ development is when you already have a database and you nedd to create context and entity classes from it
+** How to generate DB context and entity classes
+- to get started with Database First development, you can use the ~Scaffold-DbContext~ command to generate the code for the context and entity classes
+- parameters for the Scaffold-DbContext command
+| Parameter        | Description                                                                                                                                                             |
+|------------------+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| -Connection      | the connection string; you can use name=[ConnectionStringName] to specify the name of a connection string that's storedthe appsettings.json. this parameter is required |
+| -Provider        | the provider, often a NuGet package name; this parameter is required                                                                                                    |
+| -OutputDir       | the folder to store the generated files; the default is the root folder for the project                                                                                 |
+| -DataAnnotations | adds data attributes to entity classes where possible; otherwise, EF uses the Fluent API in the DB context class to perform all configuration                           |
+| -Force           | overwrites existing files; otherwise, EF doesn't overwrite existing files                                                                                               |
+- it's a best practice to store the connection string in the ~appsettings.json~ file
+- you can omit the flag for the required parameters
+** How to configure a generated DB context class
+- when you use the ~Scaffold-Database~ command to create DB context and entity classes, it adds configuration code to the ~OnConfiguring()~ method for the context class
+- to get the DB context to work, you need to edit the ~Startup.cs~ file so it injects the centext into the app
+** How to modify a generated entity class
+- when you work with Database First development, it's common to enhance the entity classes that it generates
+- if you make changes to the database, it's common to need to regenerate the entity classes
+  + when this happens, you lose any additions you've made to those classes
+  + partial classes can be used to avoid this problem
+* How to work with data in a database
+** How to query data
+- you can use /LINQ to Entities/ to query the DbSet properties of a context class
+- a variable of type ~IQueryable<T>~ holds a query, not data
+  + when it's executed, the data retrieved is stored in an object of the ~IEnumerable<T>~ type
+** How to work with projections and related entities
+- a /projection/ allows you to retrieve a subset of the properties of an entity
+- to create a projection, you can use an anonymous type or a concrete type
+  + anonymous types can be hard to use in views
+- a better way to work with projections in MVC is to use a simple /data transfer object (DTO)/ that's designed to transfer data from one place to another
+- you can use the ~Include()~ and ~ThenInclude()~ methods to include related entities to you query
+  + these methods accept lambda expressions to identify the entities to include
+- the ~Include()~ method also accepts a string literal to identify the entities to include
+** How to insert, update, and delete data
+- three methods of the DbSet class
+| Method         | Description                                                        |
+|----------------+--------------------------------------------------------------------|
+| Add(entity)    | adds the specified entity to the DbSet and sets its state to Added |
+| Update(entity) | sets the state of the specified entity to Modified                 |
+| Remove(entity) | sets the state of the specified entity to Deleted                  |
+- one of the methods of the DbContext class
+| Method        | Description |
+|---------------+-------------|
+| SaveChanges() | saves all changes to the underlying database |
+- the methods of the DbSet class only affect the DbSet
+  + the ~SaveChanges()~ method of the DbContext class affects the underlying database
+* How to handle concurrency conflicts
+- /concurrency/ allows two or more users to work with a database at the same time
+  + if two users retrieve and then attempt to update the same entity, their updates may conflict with each other
+  + you need to handle this /concurrency conflict/
+- in EF Core, you have two options
+  + the default is "last in wins" where it doesn't perform any checking and the last update overwrites any previous changes
+  + /optimistic concurrency/ checks whether a row has been changed since it was retrieved, if so EF refuses the update or deletion and throws an exception that the app can handle
+** How to check for concurrency conflicts
+ - a /concurrency conflict/ is when data is modified after it's retrieved for editing or deletion
+ - a /rowversion proprety/ lests you check all the properties in an entity for conflicts and must be an array of bytes
+ - the DbContext class has a Database property whose ~ExecuteSqlRaw()~ method can be used to simulate concurrency conflicts
+ - a /concurrency token/ lets you check an individual property for conflicts
+   + it usually doesn't make sense to check individual properties with an MVC app that uses a disconnected environment
+ - after you've added and configured a rowversion property and updated the database, every query retrieves the value of this proprety
+   + EF automatically updates its value whenever any column in an entity's underlying table row is modified
+ - when your app attempts to update or delete a row, EF compares the rowversion value that was retrieved with the initial query to its current value
+   + if they don't match, EF refuses the action and throws an exception
+   + for this to work, you need to make sure the original value is stored in the view and posted with the update or delete, usually done with a hidden field
+** How to handle a concurrency exception
+- The DbUpdateConcurrencyException is thrown when there's a concurrency conflict if optimistic concurrency is enabled
+  + it has an Entries property that provides a way to get the new database values for the row that's being saved
+* How to encapsulate you EF code
+** How to code a data access class
+- to encapsulate your data access code, it's a good practice to add extension methods to the IQueryable interface
+  + an /extension method/ is similar to a regular method except it's defined outside the data type that it's used with
+- extension methods can accept LINQ expressions as arguments
+** How to use a generic query options class
+- you can use a class for query options to make your data layer more flexible
+** How to use the repository pattern
+- one popular way to implement a data layer is to use the /repository pattern/
+  + this pattern encapsulates data within a data access layer and also uses interfaces to provide a layer of abstraction
+  + one benefit of this pattern is that it makes it easier to automate testing
+- when using the repository pattern, you should use one repository per entity
+- one way to do that is to have each repository implement the IRepository intorface
+  + a problem with this is that if you change the interface, you'll need to update all your repositories
+  + another is that you'll have to implement all the methods of the interface for every repository, even if you're not going to use all of them for an entity
+  + also, this will lead to code duplication among repositories
+- a better approach is to implement a generic Repository class that uses a generic DbSet object
+  + its constructor calls the ~Set<T>()~ method of the context object to get a DbSet object for the specified type
+  + then, it uses that DbSet object to implement all the methods of the IRepository interface
+  + this generic repository can then be used to create vraious entity collections
+- if you need more specialized operations than the generic Repository class provides, you can inherit that class and override one or more of its methods
+** How to use the unit of work pattern
+- although some programmers think that including a ~Save()~ method in each repository is ok, others think that a repository should never have one
+- either way, if you need to coordinate between multiple repositories, including a ~Save()~ method in each repository doesn't work
+  + in those cases, you can combine the repository patern with the unit of work pattern
+- the /unit of work/ pattern adds a central class that has repository objects as properties
+  + then, the central class passes each repository its context object, so they all share the same DB context
+  + it includes a ~Save()~ method that calls the ~SaveChanges()~ method of the Db context to execute all changes in all repositories against the database so if one fails, the all do
+- it is generally considered good practice for the unit of work class to implement an interface that specifies all of its methods as it makes it easier to automate testing
