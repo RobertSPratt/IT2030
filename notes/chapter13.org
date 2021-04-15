@@ -1,0 +1,17 @@
+#+TITLE: Chapter 13 - The Bookstore Website
+* The user interface and folder structure
+** The folders and files
+- it's considered a best practice for an MVC app to have a "fat" model and "skinny" controllers
+  + the idea is that the controllers should only be in charge of getting data from the model and passing it to the views
+  + the model should contain the data itself as well as the business logic for working with that data
+- a "fat" model might lead to its own problems if you try to store all of the code in just one or two class files
+  + that's why it's considered a good practice to create a model with the business logic and data files broken down into several smaller files
+  + it's also common, in larger apps, for different parts of themodel to be stored in separate projects
+* The Cart page
+** The model class
+- the JSON serializer doesn't always work correctly with EF domain models (like the ~Book~ class presented in this chapter)
+  + one comon issues is that the serializer ends up with circular references when it tries to follow all the navigation properties of a domain model
+- another good reason to use a DTO class for serialization is that sometimes the domain model retrieves more data from the database than you want to store
+  + any data you don't want to store can be decoraated with the ~[JonIgnore]~ attribute, but this can be tedious if there are a lot of them
+- you could use the ~SetObject<T>()~ and ~GetObject<T>()~ cookie extension methods to store and retrieve objects in cookies
+  + many programmers prefer, however, to store the minimum amount of data possible in a persistent cookie
