@@ -1,0 +1,142 @@
+#+TITLE: Chapter 14 - How to use dependency injection and unit testing
+* How to use dependency injection (DI)
+- with /dependency injection/, you code the containing object with a constructor that accepts an interface
+  + then, you can /inject/ the dependency by passing an object that implements the interface to the constructor
+** How to configure you app for DI
+- to use DI with MVC, you must register, or /map/, your dependencies
+  + you must tell MVC what object to inject for an interface parameter by adding code to the ~ConfigureServices()~ method in the Startup.cs file
+- the ~ConfigureServices()~ method has a parameter named services that's of the IServiceCollection type
+- three methods of the IServiceCollection object that pam dependencies
+| Method                           | Description                                                                                                                                                                                                        |
+|----------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AddTransient<interface, class>() | transient life cycle; MVC creates a new instance of the class every time it needs to inject a dependency                                                                                                           |
+| AddScoped<interface, class>()    | scoped life cycle; MVC creates a new instance of the class the first time it needs to inject a dependency and reuses that instance for all subsequent injectsion in the scope (usually a scope is an HTTP request) |
+| AddSingleton<interface, class>() | sincleton life cycle; MVC creates a new instance of the class the fist time it needs to inject a dependency and reuses that instance for all subsequent injections                                                 |
+- when you map a dependency, you must choos a /life cycle/ for the dependency
+  + most of the time, you'll use the transient life cycle
+  + if you use the longer life cycles, you should make sure that the object being injected can handle concurrency
+- you can map a dependency for the HttpContextAccessor class manually or with the ~AddHttpContextAccessor()~ method of the IServiceCollection object
+** How to use DI with controllers
+- once you've mapped your dependencies, you can requenst instances of the mapped class throughout your app
+- controllers that receive DbContext objects via dependency injection are /tightly coupled/ with EF Core because they must specify a class derived from the DbContext base class
+- controllers tht receive repository objects or unit of work objects via dependency injection are /loosely coupled/ with EF Core because they only need to specify the appropriate interface, which may or may not use EF Core
+- when MVC creates an object to inject, in inspects the constructors of the class and injects objects according to the mappings in the Startup.cs file
+  + this is called /dependency chaining/
+** How to use DI with action methods
+- sometimes, it makes sense to inject a dependency direclty into an action method
+  + you may want to do this when only one action method in a controller needs that dependency
+- to inject an object into a naction method, you can use the FromService attribute
+** How to use DI with views
+- if necessary, you can use dependency injection with views
+  + most of the time, you don't want to do that because a view should get what it needs from the controller
+  + when a layout has a dependency, though, there's no controller to pass the required object to the layout, so you may want to inject it
+- you can use the ~@inject~ directive to inject an object into a view
+  + to do that, the data type for the object is the interface type, not the class type
+* How to get started with unit testing
+- unit testing helps you improve the quality of your apps and leads to many other benefits
+** How unit tests work
+- /unit testing/ provides a way of isolating individual units of code (usually methods) and verifying that they work as expected
+- typically, you need to write a series of unit tests for each method to be tested, testing every possible outcome of the method
+  + each unit test is a method that calls the method being tested and determines if the return value matches what you expect
+- unit tests should be executed often
+  + this allows you to quickly identify any defects that may be introduced in your code, allowing you to find problems earlier in the development cycle
+** How to add an xUnit project to a solution
+- by convention, a unit test project is named after the web app project it's testing
+- for the unit test project to work correctly, it must include a reference to the web app project
+  + to add a reference, right-click Dependencies and select Add Reference
+  + in the resulting dialog, click Projects, select the web app project, and click OK
+- to add new classes to a unit test project, right-click the project and select Add -> Class
+- how to add a unit test project to a solution
+  1. right-click the solution and select Add -> New Project
+  2. in the Add New Project dialog, select the xUnit Test Project (.NET Core) template and click Next
+  3. enter a name and location for the project and click Create
+** How to write a unit test
+- some static methods of the Assert class
+| Method                     | Description                                                |
+|----------------------------+------------------------------------------------------------|
+| Equal(expected, result)    | tests whether the specified objects are equal              |
+| NotEqual(expected, result) | tests whether the specified objects are not equal          |
+| False(boolean)             | tests whether the specified condition is false             |
+| True(boolean)              | tests whether the specified condition is true              |
+| IsType<T>(result)          | tests whethe the specified object is of the specified type |
+| IsNull(result)             | tests whether the specified object is null                 |
+- three attributes of the Xunit namespace
+| Attribute               | Description                                  |
+|-------------------------+----------------------------------------------|
+| Fact                    | identifies a test method                     |
+| Theory                  | identifies a test method that has parameters |
+| InlineData(p1, p2, ...) | provides parameter values to test            |
+- when coding test methods, it's good practice to use a consistent naming convention
+- code in a unit test is often organized using the /Arrange/Act/Assert (AAA) pattern/
+  + the code in the Arrange section initializes any arguments needed by the method being tested
+  + the code in the Act esction calls the method being tested
+  + the code in the Assert section checks whether the method being tested behaved as expected
+** How to run a unit test
+- two ways to open the Test Explorer
+  + from the menu system: select Test -> Test Explorer
+  + in the Solution Explorer: right-click on the test class and select Run Tests
+- if your tests don't appear in the Text Explorer, you need to build your test project
+  + to do that, you can select Build -> Build Solution item from the menu system
+- if one or more unit tests fail, you know that there's either a problem in the method that you're testing or a problem with the unit tests
+  + in that case, you need to debug your code until you can get your unit tests to pass
+- once you have your unit tests set up, you should run them often
+  + many programmers like to run their unit tests after every significant code change
+  + you can configure xUnit to automatically run the unit tests after each build by clicking on the Settings button in the Test Explorer toolbar and selecting the Run Tests After Build item
+- the Test Explorer shows whether or not tests have been run, as well as which tests passed or failed
+  + it also shows how long it took to execute each unit test
+- the Test Explorer marks tests that suceeded with a green check mark, tests that fail with a red X, and tests that have not run yet with a blue exclamation point
+- you may have many options to run tests from the Test Explorer
+  + You can also set breakpoints and debug unit tests the same way you would debug regular methods
+* How to test methods that have dependencies
+- to test just the code in an action method, you can use a fake, or /mock/, version of the dependency
+  + then, you can implement the method used by the method you're testing so it doesn't access the database
+  + this makes it easier to pinpoint the problem if the test fails
+** How to use a fake repository object
+- an easy way to code an implementation of an interface is to use Visual Studio's code generation feature
+  + this generates a stub for each property and method of the interface that throws a NotImplementedException object
+  + then, you implement the properties and methods used by the unit tests so they don't throw a nexception
+- when you use a fake repository class, you can be sure that if the test fails, it isn't due to problems with the database or the network connection to the database
+- to use Visual Studio to generate stubs for an interface, cerate a new class that implements the interface
+  + then, hover the mouse pointer over the red squiggle that indicates that the interface hasn't been implemented, click the lightbulb icon, and select Implement Interface
+** How to use a fake TempData object
+- controllers thta use TempData don't receive a TempData object by dependency injection
+  + instead, they use the TempData property of the Controller class
+- you can create a fake version of the object that the action method depends on
+  + create a fake version of the TempData object by implementing the ITempDataDictionary interface
+- if you use Visual Studio to generate a class for this interface, it generates stubs that throw exceptions
+  + then, you can write code for the members that the action method you're testing uses
+- when you implement a property or method that's used by a method being tested, you should do the most minimal implementation possible
+  + this can be as simple as returning null or removing all code from a method with a void return type
+* How to create fake objects with Moq
+- you can use the code generation features of Visual Studio to create the mock objects you need
+  + that can lead to problems setting up your mock objects for each individual test
+  + to solve this issue, many programmers prefer to use a third-party tool to create mock objects
+** How to work with moch objects
+- before you can use the Mod framework, you need to add its NuGet package to your test project
+  + then, you can use the Mock<T> and It classes to create mock objects
+- two methods and one property of the Mock<T> class
+| Method         | Description                                                     |
+|----------------+-----------------------------------------------------------------|
+| Setup(lampda)  | lambda expression identifies the method to mock                 |
+| returns(value) | identifies the return value of the method identified by Setup() |
+|----------------+-----------------------------------------------------------------|
+| Property       | Description                                                     |
+|----------------+-----------------------------------------------------------------|
+| Object         | returns the instance of the fake object                         |
+- two static methods of the It class
+| Method        | Description                                                                        |
+|---------------+------------------------------------------------------------------------------------|
+| IsAny<T>()    | identifies an argument to be passed to the method under test                       |
+| Is<T>(lambda) | identifies and further specifies an argument to be passed to the method under test |
+- if the method you're implementing accepts arguments, you configure the arguments with the static methods of the It class
+  + you can also specify acceptable values
+- if the method returns data, you need to tell the mock object what to return
+  + to do this, you use the ~Returns()~ method of the Mock<T> class
+** How to mock a repository and TempData object
+- you can use the Moq framework to mock repository and TempData objects
+- to mock a TempData object, use the ITempDataDictionary interface from the Microsoft.AspNetCore.Mvc.ViewFeatures namespace as the type argument
+- when you use Moq, you don't need to manually implement indexers, properties, or most void methods of the repository or TempData interfaces
+** How to mock an HttpContextAccessor object
+- You can use the Moq framework to mock an HttpContextAccessor object
+  + to do that, use the IHttpContextAccessor interface of the Microsoft.AspNetCore.Http namespace as the type argument for the Mock constructor
+- the DefaultHttpContext class creates an empty instance of the HttpContext class that you can use to set up the HttpContextAccessor properties and methods you need
