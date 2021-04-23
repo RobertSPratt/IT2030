@@ -2,6 +2,9 @@
   "version": 3,
   "targets": {
     ".NETCoreApp,Version=v3.1": {
+      "font-awesome/4.7.0": {
+        "type": "package"
+      },
       "Microsoft.AspNetCore.JsonPatch/3.1.0": {
         "type": "package",
         "dependencies": {
@@ -1335,6 +1338,27 @@
     }
   },
   "libraries": {
+    "font-awesome/4.7.0": {
+      "sha512": "MCuSOl63d8b9Etn7Jm4FJS1lp8d8W9fGwQ6xu5SqrRu8e/p+FZv2a8W/LguziecV1ZpTqZPamG5nfmZs28SahA==",
+      "type": "package",
+      "path": "font-awesome/4.7.0",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "content/css/font-awesome.css",
+        "content/css/font-awesome.min.css",
+        "content/fonts/FontAwesome.otf",
+        "content/fonts/fontawesome-webfont.eot",
+        "content/fonts/fontawesome-webfont.svg",
+        "content/fonts/fontawesome-webfont.ttf",
+        "content/fonts/fontawesome-webfont.woff",
+        "content/fonts/fontawesome-webfont.woff2",
+        "font-awesome.4.7.0.nupkg.sha512",
+        "font-awesome.nuspec",
+        "tools/install.ps1"
+      ]
+    },
     "Microsoft.AspNetCore.JsonPatch/3.1.0": {
       "sha512": "EctKEX24sGLS4Brg2hdxZQc3WwP9MKFvk0d1oa8ilyt8q0rgo73G6ptxQvkFmQwaG+SKnkVV31T2UN3nSYhPGA==",
       "type": "package",
@@ -5123,7 +5147,8 @@
       "Microsoft.AspNetCore.Mvc.NewtonsoftJson >= 3.1.0",
       "Microsoft.EntityFrameworkCore >= 3.1.0",
       "Microsoft.EntityFrameworkCore.SqlServer >= 3.1.0",
-      "Microsoft.EntityFrameworkCore.Tools >= 3.1.0"
+      "Microsoft.EntityFrameworkCore.Tools >= 3.1.0",
+      "font-awesome >= 4.7.0"
     ]
   },
   "packageFolders": {
@@ -5182,6 +5207,10 @@
             "suppressParent": "All",
             "target": "Package",
             "version": "[3.1.0, )"
+          },
+          "font-awesome": {
+            "target": "Package",
+            "version": "[4.7.0, )"
           }
         },
         "imports": [
