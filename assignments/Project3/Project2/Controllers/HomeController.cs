@@ -15,17 +15,15 @@ namespace Project2.Controllers
         public IActionResult Index()
         {
             Price price = new Price();
-            //var session = new PriceSession(HttpContext.Session);
-            //session.SetPrice(price);
             return View(price); ;
         }
 
         [HttpPost]
         public IActionResult Index(Price price)
         {
-            price.CalculateTotal();
-            //var session = new PriceSession(HttpContext.Session);
-            //session.SetPrice(price);
+            if(ModelState.IsValid)
+                price.CalculateTotal();
+
             return View(price);
         }
     }

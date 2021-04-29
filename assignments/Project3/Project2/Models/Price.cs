@@ -11,12 +11,12 @@ namespace Project2.Models
         
 
         [Required]
-        [Range(0, Double.PositiveInfinity)]
+        [Range(0, Double.PositiveInfinity, ErrorMessage = "Please enter a subtotal greater than 0.")]
         [Display(Name = "Subtotal:")]
         public double Subtotal { get; set; }
 
         [Required]
-        [Range(0, 100)]
+        [Range(0, 100, ErrorMessage = "Please enter a discount between {1} and {2}.")]
         [Display(Name = "Discount percent:")]
         public double DiscountPercent { get; set; }
 
