@@ -1,0 +1,154 @@
+#+TITLE: Chapter 15 - How to work with tag helpers, partial views, and view components
+* An Introduction to tag helpers
+** How to register and use tag helpers
+- common built-in tag helpers
+| Tag helper             | Description                                                                                                                   |
+|------------------------+-------------------------------------------------------------------------------------------------------------------------------|
+| asp-action             | attribute that indicates the action method in a route                                                                         |
+| asp-controller         | attribute that indicates the controller in a route                                                                            |
+| asp-area               | attribute the indicates the area in a route                                                                                   |
+| asp-for                | attribute that binds an element to a property of a model object; MVC will generate the appropriate attributes for the element |
+| asp-validation-summary | attribute that controls the display of validation messages; usually applied to a <div> tag                                    |
+| asp-validation-for     | attribute that controls the display of a single validaion message; usually applied to a <div> tag                             |
+| environment            | element that uses include and exclude attributes to display HTML based on the current hosting environment                     |
+| partial                | element that renders a partial view                                                                                           |
+- to use tag helpers, you must register them with the ~@addTagHelper~ directive
+** How tag helpers compare to HTML helpers
++ prior to version 2.1, ASP.NET MVC CORE provided HTML helpers to generate HTML
+  + with version 2.1 and later, ASP.NET MVC CORE provides tag helpers to generate HTML
++ tag helpers use markup that works like the markup for standard HTML elements
+  - as a result, they're easy to read and work with
++ HTML helpers use C# code, not markup
+  - as a result, they're more difficult to read and work with, expecially for web designers with limited coding experience
+* How to create custom tag helpers
+** How to create a custom tag helper
+- to create a custom tag helper, you code a class that inherits the ~TagHelper~ class, and you typically override its virtual ~Process()~ method
+  + when you craete a tag helper class, it's common to store it in a folder named *TagHelpers*, but it isn't required
+  + similarly, it's common to add a suffix of ~TagHelper~ to the class name
+  + if you name your tag helper class so it starts with the same name as an HTML element, MVC automatically applies your tag helper to that element
+- a virtual method of the ~TagHelper~ class
+| Method            | Description                                                                                                                                                                             |
+|-------------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Process(ctx, out) | manipulates and outputs an HTML; accepts a ~TagHelperContext~ object and a ~TagHelperOutput~ object and has an asynchronous version named ~ProcessAsync()~ that returns a ~Task~ object |
+- one property of the ~TagHelperOutput~ class
+| Property   | Description                                                          |
+|------------+----------------------------------------------------------------------|
+| Attributes | a ~TagHelperAttributeList~ object that holds an element's attributes |
+- one method of the ~TagHelperAttributeList~ class
+| Property                | Description                                                                                                                                                |
+|-------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| SetAttribute(name, val) | sets the attribute in the attribute list with the specified name to the specified value; if the attribute doesn't exist, it's added to the end of the list |
+- the ~TagHelperContext~ class represents the current context of an HTML element
+- the ~TagHelperOutput~ class represents the state of the HTML element
+** How to create a tag helper for a non-standard HTML element
+- mode properties of the ~TagHelperOutput~ class
+| Property | Description                                                                                                         |
+|----------+---------------------------------------------------------------------------------------------------------------------|
+| TagName  | replaces the current start tag; also replaces the end tag, if applicable                                            |
+| TagMode  | uses the TagMode enumeration to indicate the type of tag; options are SelfClosing, StartAndEndTag, and StartTagOnly |
+- MVC automatically translates between the Pascal casing of a C# class name and the kebab casing of the corresponding HTML element
+** How to use extension methods with tag helpers
+- the classes of the ~TagHelpers~ namespace are regular C# classes
+  + as a result, you can add extension methods to them to encapsulate code that you use frequently
+** How to control the scope of a tag helper
+- you can control the elements that your tag helper class targets by decorating it with the ~HtmlTargetElement~ attribute, which can
+  + allow a tag helper class to have a different name than the HTML element it targets
+  + narrow the scope of a tag helper so it only targets an element under certain conditions
+  + widen the scope of a tag helper so it targets multiple elements
+- two properties of the ~HtmlTargetElement~ attribute
+| Property   | Description                                                                       |
+|------------+-----------------------------------------------------------------------------------|
+| Attributes | the attributes an HTML element must have for the tag helper to be applied         |
+| ParentTag  | the parent tag that must contain an HTML element for the tag helper to be applied |
+- you can apply multiple ~HtmlTargetElement~ attributes to a tag helper class
+- within the ~HtmlTargetAttribute~, you can use brackets to specify the name and value of an attribute
+** How to use a tag helper to add elements
+- three properties of the ~TagHelperOutput~ class
+| Property    | Description                                                  |
+|-------------+--------------------------------------------------------------|
+| PreElement  | the HTML before an element                                   |
+| Content     | the main content before the start and end tags of an element |
+| PostElement | the HTML after an elemnt                                     |
+- using the ~TagHelperOutput~ class can be error prone, so it is generally considered best practice to use the ~TagBuilder~ class to build the HTML
+- two properties of the ~TagBuilder~ class
+| Property   | Description                                                                           |
+|------------+---------------------------------------------------------------------------------------|
+| Attributes | a dictionary of element's attributes that can be used to add attributes to an element |
+| InnerHtml  | a content builder that works with the inner HTML of an elemnt                         |
+* More skills for custom tag helpers
+** How to use properties with a tag helper
+- a tag helper is a normal C# class, so you can code normal C# properties for it
+  + the properties correspond to the attributes for the HTML element that the tag helper targets
+- one reason to code a property in a tag helper class is to provide a way to prevent attributes that you need to apply a tag helper from being output to the browser
+  + more often, though, you code properties in a tag helper class to get data that the tag helper needs
+- you can use the ~HtmlAttributeName~ attribute to define the name of the HTML attribute if you want it to be different from the property name
+** How to work with the model property that an element is bound to
+- one property of the ~TagHelperContext~ class
+| Property      | Description                                               |
+|---------------+-----------------------------------------------------------|
+| AllAttributes | a list containing all attributes of the targeted elements |
+- three properties of the ~ModelExpression~ class
+| Property | Description                                                       |
+|----------+-------------------------------------------------------------------|
+| Name     | the name of the bound property                                    |
+| Model    | the value of the bound property                                   |
+| Metadata | other attributes of the bound property including the display name |
+- the ~ModelExpression~ class represents a model property that's bound to an element with the asp-for tag helper
+- you can use the ~AllAttributes~ property of the ~TagHelperContext~ class to retrieve a ~ModelExpression~ object for a bound object
+** How to use dependency injection with a tag helper
+- dependency injection (DI) provides a way to inject teh objects that a class needs into the class without explicitly creating them within that class
+  + if you create a property of the ~ViewContext~ type and decorate it with the ~ViewContext~ attribute, MVC automatically injects the ~ViewContext~ object into the class
+- the ~HtmlAttributeNotBound~ attribute tells MVC that a property isnt set in the HTML
+- you can also use dependency injection to manually inject an object into tag helper
+** How to create a conditional tag helper
+- a method of the ~TagHelperOutput~ class
+| Method           | Description                                                                |
+|------------------+----------------------------------------------------------------------------|
+| SuppressOutput() | prevents MVC from sending any HTML for the targeted element to the browser |
+- you can use the ~SuppressOutput()~ method of the ~TagHelperOutput~ class to create tag helpers that only send an element to the browser under certain conditions
+** How to generate URLs in a tag helper
+- MVC provides a ~LinkGenerator~ class that allows you to use the routing system to generate URLs
+  + to use this class, you should include a using directive for the Microsoft.AspNetCore.Routing namespace
+- you can use the ~GetPathByAction()~ method to generate a route-based URL
+- if your tag helper has a constructor with a ~LinkGenerator~ parameter, MVC will inject it
+* How to work with partial views
+** How to create and use a partial view
+- a /partial view/ can contain HTML or Razor code, or a combination of the two
+  + they are useful for blocks of HTML or Razor code that occur in multiple places in an app or in multiple apps
+- to create a partial view, you create a normal view and check the "Create as partial view" box
+- like other views, MVC expects partial views to be in the Views folder
+  + MVC looks for a partial view in the folder for the current controller and in the Shared folder
+** How to pass data to a partial view
+- MVC treats a partial view as part of the view it's added to
+  + by default the model object of a partiel view is the model object of the parent view
+- four attributes of the partial tag helper
+| Attribute | Description                                                                                   |
+|-----------+-----------------------------------------------------------------------------------------------|
+| name      | the name of the partial view to render; this attribute is required                            |
+| model     | the object for the partial view to use as its model; may not be used with the for attribute   |
+| for       | the object for the partial view to use as its model; may not be used with the model attribute |
+| viewData  | the ViewDataDictionary object for the partial view to use as its ViewData                     |
+- by default, the ViewData dictionary of the partial view is the ViewData dictionary of the parent view
+- if you want the partial view to use a different model or ViewData dictionary, you can use the attributes of the partial tag helper to specify that model or dictionary
+* How to work with view components
+** How to create and use a view component
+- a view component has two parts:
+  1. a class that functions as its controller
+  2. it has a partial view that functions as its view
+- the class is a regular C# class that inherits the ~ViewComponent~ class, which is in the Microsoft.AspNetCore.Mvc namespace
+  + many delevopers store these classes in a separate folder named *Components*, but that isn't required
+- unlike the ~TagHelper~ class, the ~ViewComponent~ class doesn't have virtual methods to override
+- a /view component/ is a class that sends data to a partial view
+  + you can think of it as a controller for a partial view
+- to create a view component, you can create a new class file in the Components folder that inherits the ~ViewComponents~ class
+  + then, you typically code an ~Invoke()~ method
+- you use tag helper syntax with a prefix of "vc:" to use a view component
+  + for this to work, you must register the custom tag helpers for your app
+** How to pass data to a view component
+- one way to pass data to a view component is with dependency injection
+- another is to add one or more parameters with the ~Invoke()~ method
+  + you code the parameter value as an attribute in the tag helper for the view component
+- you can ovverride the default search for the partial view by passing a fully qualified view name and path as the first argument of the ~View()~ method
+** How view components can simplify an app
+- the controllers and view models no longer ned to perform the tasks that are handled by view components
+  + instead, the controllers and view models can focus on the primary task that's handled by the view
