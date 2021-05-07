@@ -1,0 +1,149 @@
+#+TITLE: Chapter 16 - How to authenticate and authorize users
+* An introduction to authentication
+- /authentication/ refers to the process of validating the identity of a user so the user can be granted access to an app
+  + a user must typically supply a username and a password to be authenticated
+- after a user is authenticated, the user must still be authorized to use the requested app
+  + the process of granting user access to an app is called /authorization/
+** Three types of authentication
+*** Windows-based authentication
+- causes the browser to display a login dialog box when the user attempts to access a restricted page
+- is supported by most browsers
+- is configured through the IIS management console
+- uses Windows user accounts and directory rights to grant access to restricted pages
+- is most appropriate for an intranet app
+*** Individual user account authentication
+- allows developers to code a login page that gets the username and password
+- encrypts the username and password entered by the user if the login page uses a secure connection
+- doesn't rely on Windows user accounts
+*** Third-party authentication services
+- is provided by third parties such as Google, Facebook, Twitter, and Microsoft using technologies like OpenID and OAuth
+- allows users to use their existing logins and frees developers from having to worry about the secure storage of user credentials
+- can issue identities or accept identities from other web apps and access user data on other services
+- can use two-factor authentication
+** How individual user account authentication works
+- when ASP.NET Core receives a request for a protected page from a user who has not been uathenticated, the server redirects the user to the login page
+- to be authenticated, the user request must contain an /authentication cookie/
+  + by default, this cookie is stored as a session cookie
+- ASP.NET Core automatically creates an authentication cookie when the app indicates that the user should be authenticated
+  + ASP.NET Core checks for the presence of an authentication cookie any time it receives a request for a restricted page
+- The user can often specify that the authentication cookie should be made persistent
+  + then, the browser automatically sends the authentication cookier for future sessions, until the cookie expires
+** An introduction to ASP.NET Identity
+- some classes provided by ASP.NET Identity
+| Class             | Description                                                                                     |
+|-------------------+-------------------------------------------------------------------------------------------------|
+| IdentityDbContext | an Entity Framework DbContext object for working with the tables of the ASP.NET Identity system |
+| IdentityUser      | represents a user                                                                               |
+| IdentityRole      | represents a role                                                                               |
+| UserManager       | provides methods for working with users                                                         |
+| RoleManager       | provides methors for working with roles                                                         |
+| SignInManager     | provides methods for signing in users                                                           |
+| IdentityResult    | Represents the results of an identity operation                                                 |
+- some benefits of Identity
+  + it can be used with all ASP.NET frameworks, including MVC, Web Forms, Web API, and SignalR to build web, phone, Windows Store, or hybrid apps
+  + you have control over the schema of the data store that holds user information, and you can change the storage system from the default of SQL Server
+  + it's modular, so it's easier to unit test
+  + it supports claims-based authentication, which can be more flexible than using simple roles
+  + it supports third-party authentication providers like Google, Fachebook, Twitter, and Microsoft
+  + it's based on /OWIN (Open Web Interface for .NET)/ middleware, which is an open-source prject that defines a standard interface between .NET web servers and web apps
+  + it's distributed as a NuGet package, so Microsoft can deliver new features and bug fixes faster than before
+- the Identity system replaces the Membership system and can be used with all ASP.NET frameworks
+- /roles/ let you apply the same access rules to a group of users
+** How to restrict access to controllers and actions
+- attributes for authorization
+| Attribute                   | Description                                                              |
+|-----------------------------+--------------------------------------------------------------------------|
+| AllowAnonymous              | grants access to all users                                               |
+| Authorize                   | grants access only to logged in users                                    |
+| Authorize(Roles = "r1, r2") | grants access only to logged in users that belong to th especified roles |
+- to restrict access to the pages of a web app, you can apply the attributes in the Authorization namespace to an entire controller or to individual action methods
+- the Authorization attributes are not part of the Identity package, so they work even if you haven't added the Identity package to your app
+- to apply Authorization attributes to a specific action method, decorate the declaration for the action method with the appropriate Authorization attribute
+* How to get started with Identity
+** How to add Identity classes to the DB context
+- the NuGet package for Identity with EF Core: ~Microsoft.AspNetCore.Identity.EntityFrameworkCore~
+- some properties of the IdentityUser class
+| Property             | Description                                                 |
+|----------------------+-------------------------------------------------------------|
+| UserName             | the username for the user                                   |
+| Password             | the password for the user                                   |
+| ConfirmPassword      | used to confirm that the password was entered correctly     |
+| Email                | the email address for the user                              |
+| EmailConfirmed       | used to confirm that the email was entered correctly        |
+| PhoneNumber          | the phone number for the user                               |
+| PhoneNumberConfirmed | used to confirm that the phone number was entered correctly |
+- to add the User entity class to the DB context class for the app, make sure that the DB context class inherits the ~IdentityDbContext<User>~ class and not the standard ~DbContext~ class
+  + in the ~OnModelCreating()~ method, make sure to pass the ~ModelBuilder~ object to the same method of the base class
+** How to add Identity tables to the database
+- for Identity to work, you must create all the tables it needs in your database
+  + these include the AspNetUsers table adn the AspNetRoles table
+- a procedure for adding Identity tables to the database
+  1. start the Package Manager Console (PMC)
+  2. add a migration that adds the tables by entering a command like: ~Add-Migration AddIdentityTables~
+  3. Update the database by entering a command like: ~Update-Database~
+** How to configure the middleware for Identity
+- the using directive for the Identity namespace: ~using Microsoft.AspNetCore.Identity;~
+- how to add the Identity service with default password options
+#+begin_src csharp
+public void ConfigureServices(IServiceCollection services) {
+    ...
+    services.AddIdentity<User, IdentityRole>()
+        .AddEntityFrameworkStores<BookstoreContext>()
+        .AddDefaultTokenProviders();
+}
+#+end_src
+- some properties of the PasswordOptions class
+| Property               | Description                                                           |
+|------------------------+-----------------------------------------------------------------------|
+| RequiredLength         | specifies the minimum length for the password; the defualt value is 8 |
+| RequireLowercase       | specifies whether the password requires a lowercase letter            |
+| RequireUppercase       | specifies whether the password requires an uppercase letter           |
+| RequireDigit           | specifies whether the password requires a number                      |
+| RequireNonAlphanumeric | specifies whether the password requires a special character           |
+- by default, a password must be at least 8 characters long with at least one lowercase letter, one uppercase letter, one number, and one special character
+  + if you want to relax or futher restrict the default password options, use a lambda expression to set password options
+** How to add Long In/Out buttons and links to the layout
+- once middleware is configured for Identity, authentication can begin to be added to an app
+- if your app has a layout that provides a Bootstrap navbar, you can add Log In/Out buttons to it
+  + you can also add a Register link
+** How to start the Account controller
+- when a browser makes a request that doesn't pass authentication, ASP.NET Core MVC redirects to the ~/account/login~ URL by default
+  + that's why it's common to use a controller named Account with a ~LogIn()~ action method to display the Login page
+- when you code a controller that works with ASP.NET Core Identity, you can inject the ~UserManager<T>~, ~SignInManager<T>~, and ~RoleManager<T>~ objects into the controller
+- The Manager<T> objects use asynchronous methods to work with the database
+  + as a result, the controller that contains them typically inclused a using directive for the ~System.Threading.Tasks~ namespace
+- When you call an /asynchronous method/, it returns control to the calling code before it finished executing
+  + that way, the calling code and the asynchronous method can executer simultanously
+  + this is possible because an asynchronous method typically runs in a different /thread/ than the calling code
+- in contrast to an asynchronous method, a /synchronous method/ typically runs in the same thread as the calling code, and it must finish executing before the calling code can continue
+* How to register a user
+** The Register view model
+- the Register page creates a new user and signs in to the app as that user
+- if the registration succeeds, the app redirects the user to the Home page
+- if you want the password fields to use the password options specified in the Startup.cs file, the view model must use the ~DataType~ attribute to specify the Password type
+* How to log in a user
+** The Login view model
+- if the user logs in successfully, the app redirects the user to the page specified by the ReturnURL query string
+- if the user schecks the Remember Me box, the app uses a persistent cookie to keep the user logged in across multiple sessions
+  + otherwise, the app uses a session cookie that expires at the end of each session
+* How to work with roles
+** Properties and methods for working with roles
+- some of the properties and methods of the RoleManager class
+| Property/Method       | Description                                                |
+|-----------------------+------------------------------------------------------------|
+| Roles                 | returns an IQureyable object of roles                      |
+| FindByIdAsync(id)     | returns an IdentityRole object for the specified role ID   |
+| FindByNameAsync(name) | returns an IdentityRole object for the specified role name |
+| CreateAsync(role)     | creates a role and returns an IdentityResult object        |
+| UpdateAsync(role)     | updates a role and returns an IdentityResult object        |
+| DeleteAsync(role)     | deletes a role and returns an IdentityResult object        |
+- more properties and methods of the UserManager class
+| Property/Method                      | Description                                                                      |
+|--------------------------------------+----------------------------------------------------------------------------------|
+| Users                                | returns an IQueryable object of users                                            |
+| FindByIdAsync(id)                    | returns an IdentityUser object for the specified user ID                         |
+| FindByNameAsync(name)                | returns an IdentityUser object for the specifier username                        |
+| IsInRoleAsync(user, roleName)        | returns a Boolean value that indicates whether the user is in the specified role |
+| AddToRoleAsync(user, roleName)       | adds the specified user to the specified role                                    |
+| RemoverFromRoleAsync(user, roleName) | removes the specified user from the specified role                               |
+| GetRolesAsync(user)                  | returns a collection of role names for the specified user                        |
